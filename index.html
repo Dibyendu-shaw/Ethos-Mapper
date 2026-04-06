@@ -161,7 +161,7 @@ body::before{
 #globeViz{
   flex:1;width:100%;
   min-height:300px;
-  height:0; /* flex:1 drives actual height */
+  height:0;
   background:radial-gradient(ellipse at center, #e8f4ff 0%, #f0ecf7 50%, #f5f2ed 100%);
   cursor:grab;position:relative;
   display:block;
@@ -187,7 +187,9 @@ body::before{
   background:var(--primary-light);
   display:flex;align-items:center;gap:12px;
   min-height:58px;
+  animation:stripIn 0.4s ease-out;
 }
+@keyframes stripIn{from{transform:translateY(-20px);opacity:0;}to{transform:translateY(0);opacity:1;}}
 .ac-flag{font-size:1.6rem;}
 .ac-name{font-weight:700;font-size:.9rem;color:var(--text);}
 .ac-info{font-size:.68rem;color:var(--muted);font-family:var(--font-mono);}
@@ -503,11 +505,11 @@ body::before{
         <div class="globe-hint">
           <span class="hk">DRAG</span>rotate
           <span class="hk">SCROLL</span>zoom
-          <span class="hk">HOVER CARD</span>navigate
+          <span class="hk">CLICK CARD</span>navigate
         </div>
       </div>
       <div class="active-country-strip" id="activeStrip">
-        <div style="font-family:var(--font-mono);font-size:.68rem;color:var(--muted);letter-spacing:1px;">// HOVER A CARD TO FOCUS THE GLOBE</div>
+        <div style="font-family:var(--font-mono);font-size:.68rem;color:var(--muted);letter-spacing:1px;">// SELECT A COUNTRY TO FOCUS</div>
       </div>
     </div>
 
@@ -526,7 +528,7 @@ body::before{
           <button class="fb" data-filter="Americas">Americas</button>
           <button class="fb" data-filter="Oceania">Oceania</button>
         </div>
-        <div class="rc"><span id="countDisplay">195</span> countries · Click a card to view details · <span style="color:var(--accent);">Toggle Compare</span> to select up to 4</div>
+        <div class="rc"><span id="countDisplay">195</span> countries · Click to focus globe · <span style="color:var(--accent);">Toggle Compare</span> to select up to 4</div>
       </div>
       <div class="grid-area">
         <div class="grid" id="mainGrid"></div>
@@ -810,14 +812,18 @@ function focusGlobe(ct){
   const lat=ct.lat*Math.PI/180, lng=ct.lng*Math.PI/180;
   const tY=-lng, tX=-lat*0.5;
   let p=0, sY=globeObj.rotation.y, sX=globeObj.rotation.x;
+  let camP=0, camStart=globeCam.position.z;
+  
   (function anim(){
     p=Math.min(1,p+0.04);
     const t=1-Math.pow(1-p,3);
     globeObj.rotation.y=sY+(tY-sY)*t;
     globeObj.rotation.x=sX+(tX-sX)*t;
+    globeCam.position.z=camStart+(2.0-camStart)*t;
     if(p<1) requestAnimationFrame(anim);
     else { window._globeTimeout=setTimeout(()=>{autoRotate=true;},4000); }
   })();
+  
   document.getElementById('globeCoords').textContent=`LAT: ${ct.lat.toFixed(2)}°  LNG: ${ct.lng.toFixed(2)}°`;
   document.getElementById('activeStrip').innerHTML=`
     <div class="ac-flag">${ct.flag}</div>
@@ -865,7 +871,10 @@ countries.forEach((ct,i)=>{
   });
   card.addEventListener('mouseenter',()=>focusGlobe(ct));
   card.addEventListener('mouseleave',()=>{ autoRotate=true; });
-  card.addEventListener('click',()=>openModal(ct));
+  card.addEventListener('click',()=>{
+    focusGlobe(ct);
+    openModal(ct);
+  });
   grid.appendChild(card);
 });
 
@@ -1097,10 +1106,9 @@ document.getElementById('detailModal').addEventListener('click',e=>{
   if(e.target===document.getElementById('detailModal')) closeModal();
 });
 
-// ─── INIT ─── wait two frames so flex layout has settled before measuring globe size
+// ─── INIT ───
 requestAnimationFrame(()=>requestAnimationFrame(()=>{
   initGlobe();
-  // re-fit after a short delay as final safety net
   setTimeout(()=>{
     const c=document.getElementById('globeViz');
     const w=c.offsetWidth||380, h=c.offsetHeight||420;
