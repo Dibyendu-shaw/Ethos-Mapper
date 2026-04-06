@@ -13,34 +13,37 @@
             --card: #ffffff;
         }
 
-        body { font-family: 'Inter', sans-serif; margin: 0; background: var(--bg); color: var(--dark); }
+        body { font-family: 'Inter', system-ui, sans-serif; margin: 0; background: var(--bg); color: var(--dark); }
         
         header { 
-            background: var(--dark); color: white; padding: 60px 20px; text-align: center;
+            background: var(--dark); color: white; padding: 50px 20px; text-align: center;
             border-bottom: 4px solid var(--primary);
         }
 
-        .search-container { text-align: center; padding: 40px 20px; }
+        .search-container { text-align: center; padding: 30px 20px; }
         
         input { 
             width: 100%; max-width: 500px; padding: 15px; border-radius: 8px;
-            border: 1px solid #ddd; font-size: 1rem; outline: none;
+            border: 1px solid #cbd5e1; font-size: 1rem; outline: none;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
         }
 
         .container { 
             max-width: 1200px; margin: auto; display: grid; 
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); 
-            gap: 25px; padding: 20px; 
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); 
+            gap: 20px; padding: 20px; 
         }
 
         .card { 
-            background: var(--card); border-radius: 12px; padding: 25px; 
-            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
-            transition: 0.3s;
+            background: var(--card); border-radius: 8px; padding: 20px; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+            border-top: 4px solid var(--primary);
+            transition: transform 0.2s;
         }
 
-        .card:hover { transform: translateY(-5px); }
-        .card img { width: 50px; border-radius: 4px; margin-bottom: 10px; border: 1px solid #ddd; }
+        .card:hover { transform: translateY(-3px); }
+        .card img { width: 60px; height: auto; border-radius: 4px; margin-bottom: 15px; border: 1px solid #e2e8f0; }
+        .card h2 { margin: 0 0 10px 0; font-size: 1.4rem; }
 
         .section-title { 
             font-size: 0.75rem; letter-spacing: 1px; text-transform: uppercase; 
@@ -48,33 +51,44 @@
         }
 
         .grid-info { 
-            display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px;
-            background: #f1f5f9; padding: 10px; border-radius: 6px; font-size: 0.85rem;
+            display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px;
+            background: #f1f5f9; padding: 12px; border-radius: 6px; font-size: 0.85rem;
         }
 
-        .loading { text-align: center; font-size: 1.2rem; color: #64748b; margin-top: 50px; }
+        .loading, .error { text-align: center; font-size: 1.2rem; margin-top: 40px; padding: 20px; }
+        .error { color: #dc2626; background: #fee2e2; border-radius: 8px; max-width: 600px; margin-left: auto; margin-right: auto; }
+        
+        footer { text-align: center; padding: 40px; color: #64748b; font-size: 0.9rem;}
     </style>
 </head>
 <body>
 
 <header>
-    <h1>ETHOS MAPPER</h1>
-    <p>Live Data for Every Country on Earth</p>
+    <h1 style="margin-bottom: 5px;">ETHOS MAPPER</h1>
+    <p style="margin-top: 0; color: #94a3b8;">Live Data for Every Country on Earth</p>
 </header>
 
 <div class="search-container">
     <input type="text" id="searchInput" placeholder="Search by Country or Capital...">
 </div>
 
-<div class="loading" id="loader">Loading global data... 🌍</div>
+<div class="loading" id="loader">Fetching global data... Please wait 🌍</div>
+<div class="error" id="errorMsg" style="display: none;"></div>
 
 <div class="container" id="mainGrid">
     </div>
 
+<footer>
+    <p>ETHOS MAPPER | Built for Humanity by an Analyst</p>
+</footer>
+
 <script>
-    // THE ANALYST METHOD: Fetching live data from an API
+    // Fetch live data from the API
     fetch('https://restcountries.com/v3.1/all')
-        .then(response => response.json())
+        .then(response => {
+            if (!response.ok) throw new Error('Network response was not ok');
+            return response.json();
+        })
         .then(data => {
             document.getElementById('loader').style.display = 'none'; // Hide loader
             
@@ -83,52 +97,47 @@
 
             const grid = document.getElementById('mainGrid');
 
-            // Loop through all 195+ countries
+            // Loop through all countries
             data.forEach(country => {
-                // Extract useful data
                 let name = country.name.common;
                 let flag = country.flags.svg;
                 let capital = country.capital ? country.capital[0] : "None";
                 let region = country.region;
-                let pop = country.population.toLocaleString(); // Format with commas
+                let pop = country.population.toLocaleString();
                 let langs = country.languages ? Object.values(country.languages).slice(0,2).join(", ") : "Various";
 
-                // Create the HTML Card
                 let cardHTML = `
                     <div class="card">
                         <img src="${flag}" alt="Flag of ${name}">
-                        <h2 style="margin:0">${name}</h2>
+                        <h2>${name}</h2>
                         
                         <span class="section-title">Essential Vitals</span>
                         <div class="grid-info">
-                            <div>🏛️ Capital: ${capital}</div>
-                            <div>🌍 Region: ${region}</div>
-                            <div>👥 Pop: ${pop}</div>
-                            <div>🗣️ Lang: ${langs}</div>
+                            <div>🏛️ <b>Capital:</b> ${capital}</div>
+                            <div>🌍 <b>Region:</b> ${region}</div>
+                            <div>👥 <b>Pop:</b> ${pop}</div>
+                            <div>🗣️ <b>Lang:</b> ${langs}</div>
                         </div>
 
                         <span class="section-title">Analyst Note</span>
-                        <p style="font-size: 0.85rem; color: #475569;">
-                            This region is part of the <b>${country.subregion || region}</b> geographical zone. 
-                            <br><br><i>Add local Ethos data here via GitHub later.</i>
+                        <p style="font-size: 0.85rem; color: #475569; margin-bottom: 0;">
+                            Part of the <b>${country.subregion || region}</b> zone. 
                         </p>
                     </div>
                 `;
-                
-                // Add it to the page
                 grid.innerHTML += cardHTML;
             });
+        })
+        .catch(error => {
+            document.getElementById('loader').style.display = 'none';
+            let errorDiv = document.getElementById('errorMsg');
+            errorDiv.style.display = 'block';
+            errorDiv.innerHTML = `⚠️ <b>Data Connection Failed.</b><br><br>If you are opening this file locally (file:///), your browser is blocking the data for security. Please view this file on your live GitHub Pages link.`;
         });
 
-    // Make the Search Bar work
+    // Search Bar Functionality
     document.getElementById('searchInput').addEventListener('keyup', function() {
         let val = this.value.toLowerCase();
         let cards = document.querySelectorAll('.card');
         cards.forEach(card => {
-            card.style.display = card.innerText.toLowerCase().includes(val) ? '' : 'none';
-        });
-    });
-</script>
-
-</body>
-</html>
+            card.style.
