@@ -160,8 +160,15 @@ body::before{
 
 #globeViz{
   flex:1;width:100%;
+  min-height:300px;
+  height:0; /* flex:1 drives actual height */
   background:radial-gradient(ellipse at center, #e8f4ff 0%, #f0ecf7 50%, #f5f2ed 100%);
   cursor:grab;position:relative;
+  display:block;
+}
+#globeViz canvas{
+  position:absolute;top:0;left:0;width:100%!important;height:100%!important;
+  display:block;
 }
 #globeViz:active{cursor:grabbing;}
 
@@ -718,13 +725,16 @@ let globeObj, globeCam, globeRenderer, globeScene;
 // ─── GLOBE ───
 function initGlobe(){
   const c = document.getElementById('globeViz');
+  const W = c.offsetWidth  || 380;
+  const H = c.offsetHeight || 420;
+
   globeScene = new THREE.Scene();
-  globeCam = new THREE.PerspectiveCamera(60, c.clientWidth/c.clientHeight, 0.1, 1000);
+  globeCam = new THREE.PerspectiveCamera(60, W/H, 0.1, 1000);
   globeCam.position.z = 2.8;
 
   globeRenderer = new THREE.WebGLRenderer({antialias:true, alpha:true});
-  globeRenderer.setPixelRatio(window.devicePixelRatio);
-  globeRenderer.setSize(c.clientWidth, c.clientHeight);
+  globeRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  globeRenderer.setSize(W, H);
   globeRenderer.setClearColor(0x000000, 0);
   c.appendChild(globeRenderer.domElement);
 
@@ -763,8 +773,8 @@ function initGlobe(){
     dot.position.set(x,y,z); globeObj.add(dot);
   });
 
-  globeScene.add(Object.assign(new THREE.DirectionalLight(0xffffff,1.4),{position:{set:(x,y,z)=>{}}}) );
   const sun=new THREE.DirectionalLight(0xffffff,1.4); sun.position.set(5,3,5); globeScene.add(sun);
+  const fill=new THREE.DirectionalLight(0xaaccff,0.5); fill.position.set(-5,-2,-5); globeScene.add(fill);
   globeScene.add(new THREE.AmbientLight(0x8ab4cc,0.9));
 
   // Drag
@@ -789,7 +799,7 @@ function initGlobe(){
   })();
 
   window.addEventListener('resize',()=>{
-    const w=c.clientWidth,h=c.clientHeight;
+    const w=c.offsetWidth||380, h=c.offsetHeight||420;
     globeCam.aspect=w/h; globeCam.updateProjectionMatrix(); globeRenderer.setSize(w,h);
   });
 }
@@ -1087,8 +1097,16 @@ document.getElementById('detailModal').addEventListener('click',e=>{
   if(e.target===document.getElementById('detailModal')) closeModal();
 });
 
-// ─── INIT ───
-initGlobe();
+// ─── INIT ─── wait two frames so flex layout has settled before measuring globe size
+requestAnimationFrame(()=>requestAnimationFrame(()=>{
+  initGlobe();
+  // re-fit after a short delay as final safety net
+  setTimeout(()=>{
+    const c=document.getElementById('globeViz');
+    const w=c.offsetWidth||380, h=c.offsetHeight||420;
+    globeCam.aspect=w/h; globeCam.updateProjectionMatrix(); globeRenderer.setSize(w,h);
+  }, 300);
+}));
 renderCompare();
 </script>
 </body>
