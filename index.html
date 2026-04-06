@@ -3,207 +3,1059 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ethos Mapper | Analyst Dashboard</title>
+    <title>Ethos Mapper | Global Analyst Dashboard</title>
     
     <script src="https://unpkg.com/three"></script>
     <script src="https://unpkg.com/globe.gl"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700;800&family=Playfair+Display:wght@500;600;700&display=swap" rel="stylesheet">
 
     <style>
+        * { box-sizing: border-box; }
+
         :root {
-            --dark: #0b1120;
-            --panel: #1e293b;
-            --primary: #3b82f6;
-            --text-light: #f8fafc;
-            --text-muted: #94a3b8;
+            --dark: #0a0e27;
+            --dark-secondary: #0f1535;
+            --panel: #1a1f3a;
+            --panel-light: #222d4f;
+            --primary: #00d4ff;
+            --primary-dark: #0099cc;
+            --accent: #ff006e;
+            --accent-glow: #ff006e44;
+            --text-light: #f5f7fa;
+            --text-muted: #8b93a6;
+            --success: #00d97e;
         }
 
-        body { 
-            font-family: 'Inter', system-ui, sans-serif; 
+        html, body { 
             margin: 0; 
+            padding: 0;
+            font-family: 'Poppins', sans-serif; 
             background: var(--dark); 
             color: var(--text-light); 
+            overflow-x: hidden;
         }
 
-        /* The Dashboard Layout */
+        /* Animated background */
+        body::before {
+            content: '';
+            position: fixed;
+            width: 200%;
+            height: 200%;
+            top: -50%;
+            left: -50%;
+            background: 
+                radial-gradient(circle at 20% 30%, #1a3a52 0%, transparent 40%),
+                radial-gradient(circle at 80% 70%, #2a1a3a 0%, transparent 40%);
+            animation: drift 25s ease-in-out infinite;
+            z-index: -1;
+            pointer-events: none;
+        }
+
+        @keyframes drift {
+            0%, 100% { transform: translate(0, 0); }
+            50% { transform: translate(30px, -30px); }
+        }
+
+        /* Navigation Bar */
+        .navbar {
+            background: linear-gradient(135deg, #0a0e27cc 0%, #1a1f3acc 100%);
+            backdrop-filter: blur(10px);
+            border-bottom: 1px solid #00d4ff22;
+            padding: 18px 30px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            animation: slideDown 0.8s ease-out;
+        }
+
+        @keyframes slideDown {
+            from { transform: translateY(-100%); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .navbar-brand {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            font-family: 'Playfair Display', serif;
+            font-size: 1.8rem;
+            font-weight: 700;
+            background: linear-gradient(135deg, #00d4ff 0%, #00d97e 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: 1.5px;
+        }
+
+        .navbar-stats {
+            display: flex;
+            gap: 30px;
+            font-size: 0.85rem;
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .stat-value {
+            font-weight: 700;
+            font-size: 1.1rem;
+            color: #00d4ff;
+        }
+
+        .stat-label {
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-size: 0.7rem;
+        }
+
+        /* Main Dashboard */
         .dashboard {
             display: grid;
             grid-template-columns: 1fr;
-            gap: 20px;
-            padding: 20px;
-            max-width: 1400px;
+            gap: 30px;
+            padding: 40px;
+            max-width: 1600px;
             margin: auto;
         }
 
-        /* Desktop view: Split screen */
-        @media (min-width: 900px) {
+        @media (min-width: 1100px) {
             .dashboard {
-                grid-template-columns: 450px 1fr;
+                grid-template-columns: 500px 1fr;
                 align-items: start;
             }
-            .left-panel {
-                position: sticky;
-                top: 20px;
-            }
         }
 
-        /* LEFT PANEL: The Globe */
+        /* LEFT PANEL: Globe Section */
         .left-panel {
-            background: var(--panel);
-            border-radius: 16px;
-            padding: 20px;
+            background: linear-gradient(135deg, #1a1f3a 0%, #0f1535 100%);
+            border-radius: 24px;
+            padding: 35px;
             text-align: center;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-            border: 1px solid #334155;
+            box-shadow: 
+                0 25px 50px rgba(0, 212, 255, 0.08),
+                inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            border: 1px solid #00d4ff22;
+            position: sticky;
+            top: 100px;
+            animation: fadeInLeft 1s ease-out;
         }
 
-        .left-panel h1 { margin: 0 0 5px 0; font-size: 1.8rem; color: var(--primary); letter-spacing: 1px; }
-        .left-panel p { margin: 0 0 20px 0; font-size: 0.9rem; color: var(--text-muted); }
+        @keyframes fadeInLeft {
+            from { transform: translateX(-50px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+
+        .left-panel h1 { 
+            margin: 0 0 8px 0; 
+            font-family: 'Playfair Display', serif;
+            font-size: 2.2rem; 
+            background: linear-gradient(135deg, #00d4ff 0%, #00d97e 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: 2px;
+            font-weight: 700;
+        }
+
+        .left-panel p { 
+            margin: 0 0 25px 0; 
+            font-size: 0.95rem; 
+            color: var(--text-muted); 
+            font-weight: 300;
+        }
 
         #globeViz {
             width: 100%;
-            height: 400px;
-            border-radius: 12px;
+            height: 450px;
+            border-radius: 16px;
             overflow: hidden;
-            background: #000;
+            background: #000814;
             cursor: grab;
+            box-shadow: 0 15px 35px rgba(0, 212, 255, 0.15);
+            border: 1px solid #00d4ff11;
+            transition: box-shadow 0.3s ease;
         }
-        #globeViz:active { cursor: grabbing; }
 
-        /* RIGHT PANEL: Search & Cards */
+        #globeViz:active { cursor: grabbing; }
+        #globeViz:hover { box-shadow: 0 20px 50px rgba(0, 212, 255, 0.25); }
+
+        .globe-hint {
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            margin-top: 15px;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 0.6; }
+            50% { opacity: 1; }
+        }
+
+        /* RIGHT PANEL: Controls & Cards */
         .right-panel {
             display: flex;
             flex-direction: column;
-            gap: 20px;
+            gap: 25px;
+            animation: fadeInRight 1s ease-out;
         }
 
-        input { 
-            width: 100%; box-sizing: border-box; padding: 18px 20px; border-radius: 12px;
-            background: var(--panel); border: 1px solid #334155; color: white;
-            font-size: 1.1rem; outline: none; transition: border-color 0.2s;
+        @keyframes fadeInRight {
+            from { transform: translateX(50px); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
         }
-        input:focus { border-color: var(--primary); }
-        input::placeholder { color: #64748b; }
 
+        /* Search & Filter Section */
+        .search-section {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .search-wrapper {
+            position: relative;
+        }
+
+        input[type="text"] { 
+            width: 100%; 
+            padding: 16px 20px 16px 50px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, #1a1f3a 0%, #222d4f 100%);
+            border: 2px solid #00d4ff22;
+            color: white;
+            font-size: 1rem;
+            font-family: inherit;
+            outline: none;
+            transition: all 0.3s ease;
+            font-weight: 500;
+        }
+
+        input[type="text"]:focus { 
+            border-color: var(--primary);
+            box-shadow: 0 0 20px rgba(0, 212, 255, 0.2);
+            transform: translateY(-2px);
+        }
+
+        input[type="text"]::placeholder { color: #64748b; }
+
+        .search-icon {
+            position: absolute;
+            left: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--primary);
+            font-size: 1.2rem;
+        }
+
+        /* Filter Buttons */
+        .filter-group {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 10px 18px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #1a1f3a 0%, #222d4f 100%);
+            border: 1.5px solid #00d4ff22;
+            color: var(--text-light);
+            font-size: 0.85rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-family: inherit;
+        }
+
+        .filter-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+            transform: translateY(-2px);
+        }
+
+        .filter-btn.active {
+            background: linear-gradient(135deg, #00d4ff 0%, #00d97e 100%);
+            border-color: var(--primary);
+            color: #0a0e27;
+            box-shadow: 0 10px 25px rgba(0, 212, 255, 0.3);
+        }
+
+        /* Grid & Cards */
         .grid { 
             display: grid; 
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); 
-            gap: 20px; 
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); 
+            gap: 20px;
+            animation: gridFadeIn 0.8s ease-out;
         }
 
-        /* Interactive Cards */
+        @keyframes gridFadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
         .card { 
-            background: var(--panel); border-radius: 12px; padding: 20px; 
-            border: 1px solid #334155; border-top: 4px solid var(--primary);
-            transition: all 0.3s ease; cursor: pointer;
+            background: linear-gradient(135deg, #1a1f3a 0%, #222d4f 100%);
+            border-radius: 16px;
+            padding: 24px;
+            border: 1px solid #00d4ff22;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            animation: cardSlide 0.6s ease-out backwards;
+        }
+
+        .card:nth-child(1) { animation-delay: 0.05s; }
+        .card:nth-child(2) { animation-delay: 0.1s; }
+        .card:nth-child(3) { animation-delay: 0.15s; }
+        .card:nth-child(4) { animation-delay: 0.2s; }
+        .card:nth-child(5) { animation-delay: 0.25s; }
+        .card:nth-child(6) { animation-delay: 0.3s; }
+        .card:nth-child(n+7) { animation-delay: 0.35s; }
+
+        @keyframes cardSlide {
+            from { 
+                transform: translateY(30px); 
+                opacity: 0;
+            }
+            to { 
+                transform: translateY(0); 
+                opacity: 1;
+            }
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, #00d4ff11, transparent);
+            transition: left 0.6s ease;
+        }
+
+        .card:hover::before {
+            left: 100%;
         }
 
         .card:hover { 
-            transform: translateY(-5px); 
-            box-shadow: 0 10px 20px rgba(0,0,0,0.4); 
+            transform: translateY(-8px) scale(1.02);
+            box-shadow: 
+                0 20px 40px rgba(0, 212, 255, 0.2),
+                inset 0 1px 0 rgba(0, 212, 255, 0.2);
             border-color: var(--primary);
         }
 
-        .card h2 { margin: 0 0 10px 0; font-size: 1.4rem; display: flex; align-items: center; gap: 10px; }
-        .flag-emoji { font-size: 2rem; line-height: 1; }
+        .card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 18px;
+        }
 
-        .section-title { 
-            font-size: 0.75rem; letter-spacing: 1px; text-transform: uppercase; 
-            color: var(--primary); font-weight: 800; margin-top: 15px; display: block;
+        .card-title {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .card h2 { 
+            margin: 0;
+            font-size: 1.5rem;
+            font-family: 'Playfair Display', serif;
+            font-weight: 600;
+            letter-spacing: 0.5px;
+        }
+
+        .flag-emoji { 
+            font-size: 2.5rem;
+            line-height: 1;
+            filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.3));
+        }
+
+        .card-meta {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .meta-badge {
+            font-size: 0.7rem;
+            padding: 5px 10px;
+            background: #00d4ff11;
+            border-radius: 8px;
+            color: var(--primary);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+            border: 1px solid #00d4ff22;
         }
 
         .grid-info { 
-            display: grid; grid-template-columns: 1fr; gap: 8px; margin-top: 10px;
-            background: #0f172a; padding: 12px; border-radius: 8px; font-size: 0.85rem; color: #cbd5e1;
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 12px;
+            background: #0a0e2755;
+            padding: 16px;
+            border-radius: 12px;
+            font-size: 0.9rem;
+            color: #cbd5e1;
+            border-left: 3px solid var(--primary);
+        }
+
+        .grid-info div {
+            display: flex;
+            align-items: center;
+            gap: 8px;
         }
         
-        .grid-info b { color: white; }
+        .grid-info b { 
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        .card-action {
+            margin-top: 16px;
+            padding: 12px;
+            background: linear-gradient(135deg, #00d4ff11 0%, #00d97e11 100%);
+            border-radius: 10px;
+            text-align: center;
+            font-size: 0.85rem;
+            color: var(--primary);
+            font-weight: 600;
+            border: 1px solid #00d4ff22;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .card-action:hover {
+            background: linear-gradient(135deg, #00d4ff22 0%, #00d97e22 100%);
+            border-color: var(--primary);
+        }
+
+        /* Modal */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(10, 14, 39, 0.9);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .modal-content {
+            background: linear-gradient(135deg, #1a1f3a 0%, #222d4f 100%);
+            border-radius: 24px;
+            padding: 40px;
+            max-width: 600px;
+            width: 90%;
+            max-height: 85vh;
+            overflow-y: auto;
+            border: 1px solid #00d4ff22;
+            box-shadow: 0 30px 60px rgba(0, 212, 255, 0.2);
+            animation: slideUp 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translateY(50px);
+                opacity: 0;
+            }
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #00d4ff22;
+        }
+
+        .modal-title {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            font-weight: 700;
+        }
+
+        .modal-flag {
+            font-size: 3rem;
+            filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.3));
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            color: var(--primary);
+            font-size: 2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .close-btn:hover {
+            color: var(--accent);
+            transform: rotate(90deg);
+        }
+
+        .modal-section {
+            margin-bottom: 25px;
+        }
+
+        .modal-section-title {
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: var(--primary);
+            font-weight: 800;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .modal-section-content {
+            background: #0a0e2755;
+            padding: 16px;
+            border-radius: 12px;
+            border-left: 3px solid var(--primary);
+            color: #cbd5e1;
+        }
+
+        .modal-section-content div {
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .modal-section-content label {
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        /* No results message */
+        .no-results {
+            grid-column: 1 / -1;
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-muted);
+            font-size: 1.1rem;
+        }
+
+        /* Responsive */
+        @media (max-width: 900px) {
+            .dashboard {
+                grid-template-columns: 1fr;
+                padding: 20px;
+            }
+
+            .left-panel {
+                position: static;
+                border-radius: 20px;
+                padding: 25px;
+            }
+
+            .navbar-stats {
+                font-size: 0.75rem;
+                gap: 15px;
+            }
+
+            .grid {
+                grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            }
+        }
+
+        /* Scrollbar styling */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #00d4ff44;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #00d4ff66;
+        }
     </style>
 </head>
 <body>
 
+<!-- Navigation Bar -->
+<div class="navbar">
+    <div class="navbar-brand">🌍 ETHOS MAPPER</div>
+    <div class="navbar-stats">
+        <div class="stat-item">
+            <div class="stat-value">195+</div>
+            <div class="stat-label">Countries</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-value">8.1B+</div>
+            <div class="stat-label">Population</div>
+        </div>
+        <div class="stat-item">
+            <div class="stat-value">All</div>
+            <div class="stat-label">Regions</div>
+        </div>
+    </div>
+</div>
+
+<!-- Main Dashboard -->
 <div class="dashboard">
+    <!-- LEFT PANEL: Globe -->
     <div class="left-panel">
-        <h1>ETHOS MAPPER</h1>
-        <p>Hover over any card to scan location.</p>
+        <h1>GLOBE VIEW</h1>
+        <p>Interactive 3D visualization. Hover cards to navigate.</p>
         <div id="globeViz"></div>
+        <div class="globe-hint">💡 Drag to rotate • Scroll to zoom</div>
     </div>
 
+    <!-- RIGHT PANEL: Search & Cards -->
     <div class="right-panel">
-        <input type="text" id="searchInput" placeholder="Search by Country or Capital...">
-        
-        <div class="grid" id="mainGrid">
+        <!-- Search Section -->
+        <div class="search-section">
+            <div class="search-wrapper">
+                <span class="search-icon">🔍</span>
+                <input type="text" id="searchInput" placeholder="Search by country, capital, or region...">
             </div>
+            <div class="filter-group">
+                <button class="filter-btn active" data-filter="all">All Countries</button>
+                <button class="filter-btn" data-filter="Asia">Asia</button>
+                <button class="filter-btn" data-filter="Europe">Europe</button>
+                <button class="filter-btn" data-filter="Africa">Africa</button>
+                <button class="filter-btn" data-filter="Americas">Americas</button>
+                <button class="filter-btn" data-filter="Oceania">Oceania</button>
+            </div>
+        </div>
+
+        <!-- Cards Grid -->
+        <div class="grid" id="mainGrid"></div>
+
+        <!-- No Results -->
+        <div class="no-results" id="noResults" style="display: none;">
+            <p>📍 No countries found. Try adjusting your search or filters.</p>
+        </div>
+    </div>
+</div>
+
+<!-- Detail Modal -->
+<div class="modal" id="detailModal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <div class="modal-title">
+                <span class="modal-flag" id="modalFlag"></span>
+                <div id="modalCountry"></div>
+            </div>
+            <button class="close-btn" onclick="closeModal()">✕</button>
+        </div>
+        
+        <div class="modal-section">
+            <div class="modal-section-title">📍 Location & Geography</div>
+            <div class="modal-section-content">
+                <div>
+                    <label>Capital:</label>
+                    <span id="modalCapital"></span>
+                </div>
+                <div>
+                    <label>Region:</label>
+                    <span id="modalRegion"></span>
+                </div>
+                <div>
+                    <label>Coordinates:</label>
+                    <span id="modalCoords"></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-section">
+            <div class="modal-section-title">👥 Demographics</div>
+            <div class="modal-section-content">
+                <div>
+                    <label>Population:</label>
+                    <span id="modalPop"></span>
+                </div>
+                <div>
+                    <label>Languages:</label>
+                    <span id="modalLangs"></span>
+                </div>
+            </div>
+        </div>
+
+        <div class="modal-section">
+            <div class="modal-section-title">✨ Quick Facts</div>
+            <div class="modal-section-content">
+                <p id="modalFact" style="margin: 0; line-height: 1.6;"></p>
+            </div>
+        </div>
     </div>
 </div>
 
 <script>
     const countriesData = [
-        { name: "India", lat: 20.5937, lng: 78.9629, flag: "🇮🇳", capital: "New Delhi", region: "Asia", pop: "1.42 B", langs: "Hindi, English" },
-        { name: "Japan", lat: 36.2048, lng: 138.2529, flag: "🇯🇵", capital: "Tokyo", region: "Asia", pop: "125 M", langs: "Japanese" },
-        { name: "France", lat: 46.2276, lng: 2.2137, flag: "🇫🇷", capital: "Paris", region: "Europe", pop: "67.9 M", langs: "French" },
-        { name: "Brazil", lat: -14.2350, lng: -51.9253, flag: "🇧🇷", capital: "Brasília", region: "Americas", pop: "215.3 M", langs: "Portuguese" },
-        { name: "United States", lat: 37.0902, lng: -95.7129, flag: "🇺🇸", capital: "Washington, D.C.", region: "Americas", pop: "333.2 M", langs: "English" },
-        { name: "South Africa", lat: -30.5595, lng: 22.9375, flag: "🇿🇦", capital: "Pretoria", region: "Africa", pop: "59.8 M", langs: "Zulu, English" },
-        { name: "Australia", lat: -25.2744, lng: 133.7751, flag: "🇦🇺", capital: "Canberra", region: "Oceania", pop: "26.0 M", langs: "English" },
-        { name: "Egypt", lat: 26.8206, lng: 30.8025, flag: "🇪🇬", capital: "Cairo", region: "Africa", pop: "110.9 M", langs: "Arabic" },
-        { name: "Canada", lat: 56.1304, lng: -106.3468, flag: "🇨🇦", capital: "Ottawa", region: "Americas", pop: "38.9 M", langs: "English, French" },
-        { name: "Germany", lat: 51.1657, lng: 10.4515, flag: "🇩🇪", capital: "Berlin", region: "Europe", pop: "83.2 M", langs: "German" }
+        { name: "Afghanistan", lat: 33.9391, lng: 67.2099, flag: "🇦🇫", capital: "Kabul", region: "Asia", pop: "40.4 M", langs: "Pashto, Dari", fact: "Landlocked country with ancient Silk Road heritage. Known for its rugged terrain and rich history." },
+        { name: "Albania", lat: 41.1533, lng: 20.1683, flag: "🇦🇱", capital: "Tirana", region: "Europe", pop: "2.9 M", langs: "Albanian", fact: "Balkan nation with stunning beaches and mountains. Emerging tourism destination in Southeast Europe." },
+        { name: "Algeria", lat: 28.0339, lng: 1.6596, flag: "🇩🇿", capital: "Algiers", region: "Africa", pop: "44.9 M", langs: "Arabic, Tamazight", fact: "North Africa's largest country. Home to the Sahara Desert and rich Roman ruins." },
+        { name: "Andorra", lat: 42.5463, lng: 1.5948, flag: "🇦🇩", capital: "Andorra la Vella", region: "Europe", pop: "0.08 M", langs: "Catalan", fact: "Tiny principality nestled in the Pyrenees. Popular ski destination and tax haven." },
+        { name: "Angola", lat: -11.2027, lng: 17.8739, flag: "🇦🇴", capital: "Luanda", region: "Africa", pop: "36.7 M", langs: "Portuguese", fact: "Southern African nation with vast natural resources. Rich biodiversity and growing economy." },
+        { name: "Antigua and Barbuda", lat: 17.0578, lng: -61.7964, flag: "🇦🇬", capital: "Saint John's", region: "Americas", pop: "0.1 M", langs: "English", fact: "Caribbean island nation known for pristine beaches and warm hospitality." },
+        { name: "Argentina", lat: -38.4161, lng: -63.6167, flag: "🇦🇷", capital: "Buenos Aires", region: "Americas", pop: "46.2 M", langs: "Spanish", fact: "Tango, beef, and wine! Home to the Pampas and Patagonia's stunning landscapes." },
+        { name: "Armenia", lat: 40.0691, lng: 45.0382, flag: "🇦🇲", capital: "Yerevan", region: "Asia", pop: "2.8 M", langs: "Armenian", fact: "Ancient Christian nation with rich cultural heritage and mountainous terrain." },
+        { name: "Australia", lat: -25.2744, lng: 133.7751, flag: "🇦🇺", capital: "Canberra", region: "Oceania", pop: "26.0 M", langs: "English", fact: "The largest island continent with unique wildlife and iconic landmarks like Uluru." },
+        { name: "Austria", lat: 47.5162, lng: 14.5501, flag: "🇦🇹", capital: "Vienna", region: "Europe", pop: "9.4 M", langs: "German", fact: "Alpine country known for classical music, imperial palaces, and world-class skiing." },
+        { name: "Azerbaijan", lat: 40.1431, lng: 47.5769, flag: "🇦🇿", capital: "Baku", region: "Asia", pop: "10.4 M", langs: "Azerbaijani", fact: "Land of Fire with ancient traditions. Gateway between Europe and Asia." },
+        { name: "Bahamas", lat: 24.2155, lng: -76.0789, flag: "🇧🇸", capital: "Nassau", region: "Americas", pop: "0.4 M", langs: "English", fact: "Caribbean paradise with turquoise waters and world-class diving destinations." },
+        { name: "Bahrain", lat: 26.0667, lng: 50.5577, flag: "🇧🇭", capital: "Manama", region: "Asia", pop: "1.9 M", langs: "Arabic", fact: "Island nation and regional financial hub with modern architecture and traditions." },
+        { name: "Bangladesh", lat: 23.6850, lng: 90.3563, flag: "🇧🇩", capital: "Dhaka", region: "Asia", pop: "169.5 M", langs: "Bengali", fact: "Land of the Ganges Delta. Vibrant textile industry and growing tech sector." },
+        { name: "Barbados", lat: 13.1936, lng: -59.5432, flag: "🇧🇧", capital: "Bridgetown", region: "Americas", pop: "0.3 M", langs: "English", fact: "Eastern Caribbean island known for rum, beaches, and cultural festivities." },
+        { name: "Belarus", lat: 53.7098, lng: 27.9534, flag: "🇧🇾", capital: "Minsk", region: "Europe", pop: "9.4 M", langs: "Belarusian, Russian", fact: "Eastern European nation with extensive forests and Soviet-era architecture." },
+        { name: "Belgium", lat: 50.5039, lng: 4.4699, flag: "🇧🇪", capital: "Brussels", region: "Europe", pop: "11.6 M", langs: "Dutch, French, German", fact: "Home to EU institutions, Belgian chocolate, and medieval architecture." },
+        { name: "Belize", lat: 17.1899, lng: -88.7979, flag: "🇧🇿", capital: "Belmopan", region: "Americas", pop: "0.4 M", langs: "English", fact: "Central American nation with Caribbean vibes, Mayan ruins, and barrier reefs." },
+        { name: "Benin", lat: 9.3077, lng: 2.3158, flag: "🇧🇯", capital: "Porto-Novo", region: "Africa", pop: "13.3 M", langs: "French", fact: "West African nation with vibrant culture and historical significance." },
+        { name: "Bhutan", lat: 27.5142, lng: 90.4336, flag: "🇧🇹", capital: "Thimphu", region: "Asia", pop: "0.8 M", langs: "Dzongkha", fact: "Himalayan kingdom measuring progress by happiness instead of GDP. Pristine nature preserved." },
+        { name: "Bolivia", lat: -16.2902, lng: -63.5887, flag: "🇧🇴", capital: "La Paz, Sucre", region: "Americas", pop: "12.2 M", langs: "Spanish", fact: "Heart of South America with Andes mountains and vast natural resources." },
+        { name: "Bosnia and Herzegovina", lat: 43.9159, lng: 17.6791, flag: "🇧🇦", capital: "Sarajevo", region: "Europe", pop: "3.2 M", langs: "Bosnian", fact: "Balkan nation with diverse culture, Ottoman heritage, and natural beauty." },
+        { name: "Botswana", lat: -22.3285, lng: 24.6849, flag: "🇧🇼", capital: "Gaborone", region: "Africa", pop: "2.6 M", langs: "English, Setswana", fact: "Southern African diamond economy with world's best wildlife safaris." },
+        { name: "Brazil", lat: -14.2350, lng: -51.9253, flag: "🇧🇷", capital: "Brasília", region: "Americas", pop: "215.3 M", langs: "Portuguese", fact: "South America's largest country. Home to Amazon, Carnival, and football legends." },
+        { name: "Brunei", lat: 4.5353, lng: 114.7277, flag: "🇧🇳", capital: "Bandar Seri Begawan", region: "Asia", pop: "0.4 M", langs: "Malay", fact: "Southeast Asian sultanate with oil wealth and pristine rainforests." },
+        { name: "Bulgaria", lat: 42.7339, lng: 25.4858, flag: "🇧🇬", capital: "Sofia", region: "Europe", pop: "6.9 M", langs: "Bulgarian", fact: "Eastern European nation with Black Sea beaches, mountains, and ancient history." },
+        { name: "Burkina Faso", lat: 12.2383, lng: -1.5616, flag: "🇧🇫", capital: "Ouagadougou", region: "Africa", pop: "22.1 M", langs: "French", fact: "Landlocked West African nation with vibrant music and art scene." },
+        { name: "Burundi", lat: -3.3731, lng: 29.9189, flag: "🇧🇮", capital: "Gitega", region: "Africa", pop: "13.6 M", langs: "Kirundi, French", fact: "Small Central African nation with stunning Lake Tanganyika." },
+        { name: "Cambodia", lat: 12.5657, lng: 104.9910, flag: "🇰🇭", capital: "Phnom Penh", region: "Asia", pop: "17.6 M", langs: "Khmer", fact: "Southeast Asian kingdom famous for Angkor Wat temples and Mekong River." },
+        { name: "Cameroon", lat: 3.8480, lng: 11.5021, flag: "🇨🇲", capital: "Yaoundé", region: "Africa", pop: "28.4 M", langs: "French, English", fact: "Central African nation with diverse landscapes from coast to mountains." },
+        { name: "Canada", lat: 56.1304, lng: -106.3468, flag: "🇨🇦", capital: "Ottawa", region: "Americas", pop: "38.9 M", langs: "English, French", fact: "World's second-largest country. Known for natural beauty and quality of life." },
+        { name: "Cape Verde", lat: 16.5388, lng: -23.0418, flag: "🇨🇻", capital: "Praia", region: "Africa", pop: "0.6 M", langs: "Portuguese", fact: "Island nation off West Africa with unique culture and music." },
+        { name: "Central African Republic", lat: 6.6111, lng: 20.9394, flag: "🇨🇫", capital: "Bangui", region: "Africa", pop: "5.0 M", langs: "French", fact: "Central African nation with rainforests and significant mineral resources." },
+        { name: "Chad", lat: 15.4542, lng: 18.7322, flag: "🇹🇩", capital: "N'Djamena", region: "Africa", pop: "18.4 M", langs: "French, Arabic", fact: "Sahel nation with Lake Chad and diverse ethnic communities." },
+        { name: "Chile", lat: -35.6751, lng: -71.5430, flag: "🇨🇱", capital: "Santiago", region: "Americas", pop: "19.6 M", langs: "Spanish", fact: "Elongated South American country with Andes, deserts, and pristine fjords." },
+        { name: "China", lat: 35.8617, lng: 104.1954, flag: "🇨🇳", capital: "Beijing", region: "Asia", pop: "1.42 B", langs: "Mandarin", fact: "World's most populous nation. Ancient civilization with rapid modern development." },
+        { name: "Colombia", lat: 4.5709, lng: -74.2973, flag: "🇨🇴", capital: "Bogotá", region: "Americas", pop: "52.1 M", langs: "Spanish", fact: "Megadiverse South American country. Coffee, Amazon rainforest, and vibrant culture." },
+        { name: "Comoros", lat: -11.8754, lng: 43.3332, flag: "🇰🇲", capital: "Moroni", region: "Africa", pop: "0.9 M", langs: "Comorian, French", fact: "Island nation off East Africa with tropical charm." },
+        { name: "Congo", lat: -4.0383, lng: 21.7587, flag: "🇨🇬", capital: "Brazzaville", region: "Africa", pop: "6.1 M", langs: "French", fact: "Central African nation with rainforests and mineral wealth." },
+        { name: "Costa Rica", lat: 9.7489, lng: -83.7534, flag: "🇨🇷", capital: "San José", region: "Americas", pop: "5.2 M", langs: "Spanish", fact: "Central American paradise. Eco-tourism leader with no standing army." },
+        { name: "Croatia", lat: 45.1000, lng: 15.2000, flag: "🇭🇷", capital: "Zagreb", region: "Europe", pop: "3.9 M", langs: "Croatian", fact: "Adriatic coast with stunning islands and medieval architecture. Game of Thrones location." },
+        { name: "Cuba", lat: 21.5218, lng: -77.7812, flag: "🇨🇺", capital: "Havana", region: "Americas", pop: "11.2 M", langs: "Spanish", fact: "Caribbean island with classic cars, cigars, and unique culture." },
+        { name: "Cyprus", lat: 34.9249, lng: 33.4299, flag: "🇨🇾", capital: "Nicosia", region: "Europe", pop: "1.2 M", langs: "Greek, Turkish", fact: "Mediterranean island with ancient history and beautiful beaches." },
+        { name: "Czech Republic", lat: 49.8175, lng: 15.4730, flag: "🇨🇿", capital: "Prague", region: "Europe", pop: "10.5 M", langs: "Czech", fact: "Central European nation famous for beer, castles, and medieval charm." },
+        { name: "Democratic Republic of Congo", lat: -4.0383, lng: 21.7587, flag: "🇨🇩", capital: "Kinshasa", region: "Africa", pop: "99.0 M", langs: "French", fact: "Africa's largest rainforest. Richest mineral deposits in the world." },
+        { name: "Denmark", lat: 56.2639, lng: 9.5018, flag: "🇩🇰", capital: "Copenhagen", region: "Europe", pop: "5.9 M", langs: "Danish", fact: "Scandinavian nation known for happiness, design, and Viking heritage." },
+        { name: "Djibouti", lat: 11.8254, lng: 42.5903, flag: "🇩🇯", capital: "Djibouti City", region: "Africa", pop: "1.1 M", langs: "Arabic, French", fact: "Horn of Africa with strategic location and diverse marine life." },
+        { name: "Dominica", lat: 15.4150, lng: -61.3710, flag: "🇩🇲", capital: "Roseau", region: "Americas", pop: "0.07 M", langs: "English", fact: "Caribbean island rich in rainforests and natural hot springs." },
+        { name: "Dominican Republic", lat: 18.7357, lng: -70.1627, flag: "🇩🇴", capital: "Santo Domingo", region: "Americas", pop: "11.0 M", langs: "Spanish", fact: "Caribbean nation with beautiful beaches and rich history." },
+        { name: "Ecuador", lat: -1.8312, lng: -78.1834, flag: "🇪🇨", capital: "Quito", region: "Americas", pop: "18.4 M", langs: "Spanish", fact: "Equatorial country with Amazon, Galápagos, and Andes in one nation." },
+        { name: "Egypt", lat: 26.8206, lng: 30.8025, flag: "🇪🇬", capital: "Cairo", region: "Africa", pop: "110.9 M", langs: "Arabic", fact: "Cradle of civilization. Home to pyramids and the mighty Nile River." },
+        { name: "El Salvador", lat: 13.7942, lng: -88.8965, flag: "🇸🇻", capital: "San Salvador", region: "Americas", pop: "6.1 M", langs: "Spanish", fact: "Central American nation with Pacific beaches and volcanic landscapes." },
+        { name: "Equatorial Guinea", lat: 1.6508, lng: 10.2679, flag: "🇬🇶", capital: "Malabo", region: "Africa", pop: "1.7 M", langs: "Spanish, French, Portuguese", fact: "Central African nation rich in oil reserves." },
+        { name: "Eritrea", lat: 15.1794, lng: 39.7823, flag: "🇪🇷", capital: "Asmara", region: "Africa", pop: "6.3 M", langs: "Tigrinya", fact: "Red Sea nation with unique architecture and culture." },
+        { name: "Estonia", lat: 58.5953, lng: 25.0136, flag: "🇪🇪", capital: "Tallinn", region: "Europe", pop: "1.4 M", langs: "Estonian", fact: "Baltic nation leading in digital innovation and technology." },
+        { name: "Eswatini", lat: -26.5225, lng: 31.4659, flag: "🇸🇿", capital: "Mbabane", region: "Africa", pop: "1.2 M", langs: "English, Swati", fact: "Southern African nation with unique culture and wildlife." },
+        { name: "Ethiopia", lat: 9.1450, lng: 40.4897, flag: "🇪🇹", capital: "Addis Ababa", region: "Africa", pop: "123.4 M", langs: "Amharic", fact: "Horn of Africa's largest nation. Never colonized, rich ancient history." },
+        { name: "Fiji", lat: -17.7134, lng: 178.0650, flag: "🇫🇯", capital: "Suva", region: "Oceania", pop: "0.9 M", langs: "English, Fijian", fact: "Pacific island nation famous for tropical beauty and relaxed culture." },
+        { name: "Finland", lat: 61.9241, lng: 25.7482, flag: "🇫🇮", capital: "Helsinki", region: "Europe", pop: "5.6 M", langs: "Finnish", fact: "Nordic nation known for education, design, and the Northern Lights." },
+        { name: "France", lat: 46.2276, lng: 2.2137, flag: "🇫🇷", capital: "Paris", region: "Europe", pop: "67.9 M", langs: "French", fact: "World's most visited country. Art, wine, culture, and iconic landmarks." },
+        { name: "Gabon", lat: -0.8037, lng: 11.6045, flag: "🇬🇦", capital: "Libreville", region: "Africa", pop: "2.4 M", langs: "French", fact: "Central African nation with vast oil reserves and rainforests." },
+        { name: "Gambia", lat: 13.4432, lng: -15.3101, flag: "🇬🇲", capital: "Banjul", region: "Africa", pop: "2.5 M", langs: "English", fact: "West African nation along the Gambia River. Peaceful and welcoming." },
+        { name: "Georgia", lat: 42.3154, lng: 43.3569, flag: "🇬🇪", capital: "Tbilisi", region: "Asia", pop: "3.7 M", langs: "Georgian", fact: "Caucasus nation with ancient culture, wine, and mountain beauty." },
+        { name: "Germany", lat: 51.1657, lng: 10.4515, flag: "🇩🇪", capital: "Berlin", region: "Europe", pop: "83.2 M", langs: "German", fact: "Europe's largest economy. Leader in engineering and automotive innovation." },
+        { name: "Ghana", lat: 7.3697, lng: -5.7432, flag: "🇬🇭", capital: "Accra", region: "Africa", pop: "34.5 M", langs: "English", fact: "West African nation with stable democracy and rich gold reserves." },
+        { name: "Greece", lat: 39.0742, lng: 21.8243, flag: "🇬🇷", capital: "Athens", region: "Europe", pop: "10.4 M", langs: "Greek", fact: "Birthplace of Western civilization. Islands, ancient ruins, and Mediterranean culture." },
+        { name: "Grenada", lat: 12.1165, lng: -61.6790, flag: "🇬🇩", capital: "Saint George's", region: "Americas", pop: "0.1 M", langs: "English", fact: "Caribbean island known as the Spice Isle with beautiful beaches." },
+        { name: "Guatemala", lat: 15.7835, lng: -90.2308, flag: "🇬🇹", capital: "Guatemala City", region: "Americas", pop: "18.1 M", langs: "Spanish", fact: "Central American nation with Mayan heritage and volcanic landscapes." },
+        { name: "Guinea", lat: 9.9456, lng: -9.6966, flag: "🇬🇳", capital: "Conakry", region: "Africa", pop: "13.5 M", langs: "French", fact: "West African nation with bauxite deposits and diverse ecosystems." },
+        { name: "Guinea-Bissau", lat: 11.8037, lng: -15.1804, flag: "🇬🇼", capital: "Bissau", region: "Africa", pop: "2.0 M", langs: "Portuguese", fact: "Small West African nation with mangrove forests and biodiversity." },
+        { name: "Guyana", lat: 4.8604, lng: -58.9302, flag: "🇬🇾", capital: "Georgetown", region: "Americas", pop: "0.8 M", langs: "English", fact: "South American nation with vast rainforests and emerging oil industry." },
+        { name: "Haiti", lat: 18.9712, lng: -72.2852, flag: "🇭🇹", capital: "Port-au-Prince", region: "Americas", pop: "11.4 M", langs: "Haitian Creole, French", fact: "Caribbean island nation with unique culture and vibrant music." },
+        { name: "Honduras", lat: 15.2000, lng: -86.2419, flag: "🇭🇳", capital: "Tegucigalpa", region: "Americas", pop: "10.1 M", langs: "Spanish", fact: "Central American nation with Mesoamerican ruins and Caribbean coast." },
+        { name: "Hungary", lat: 47.1625, lng: 19.5033, flag: "🇭🇺", capital: "Budapest", region: "Europe", pop: "9.7 M", langs: "Hungarian", fact: "Central European nation known for thermal baths and Danube River." },
+        { name: "Iceland", lat: 64.9631, lng: -19.0208, flag: "🇮🇸", capital: "Reykjavik", region: "Europe", pop: "0.4 M", langs: "Icelandic", fact: "Nordic island with geysers, waterfalls, and the Northern Lights." },
+        { name: "India", lat: 20.5937, lng: 78.9629, flag: "🇮🇳", capital: "New Delhi", region: "Asia", pop: "1.42 B", langs: "Hindi, English", fact: "World's most populous democracy. Bollywood, IT hub, and Taj Mahal." },
+        { name: "Indonesia", lat: -0.7893, lng: 113.9213, flag: "🇮🇩", capital: "Jakarta", region: "Asia", pop: "277.5 M", langs: "Indonesian", fact: "Largest archipelago in world with incredible biodiversity." },
+        { name: "Iran", lat: 32.4279, lng: 53.6880, flag: "🇮🇷", capital: "Tehran", region: "Asia", pop: "90.5 M", langs: "Persian", fact: "Ancient Persia with rich history, culture, and natural resources." },
+        { name: "Iraq", lat: 33.2232, lng: 43.6793, flag: "🇮🇶", capital: "Baghdad", region: "Asia", pop: "44.9 M", langs: "Arabic, Kurdish", fact: "Cradle of civilization between Tigris and Euphrates rivers." },
+        { name: "Ireland", lat: 53.4129, lng: -8.2439, flag: "🇮🇪", capital: "Dublin", region: "Europe", pop: "5.1 M", langs: "English, Irish", fact: "Celtic nation known for literature, whiskey, and friendly people." },
+        { name: "Israel", lat: 31.0461, lng: 34.8516, flag: "🇮🇱", capital: "Jerusalem", region: "Asia", pop: "9.5 M", langs: "Hebrew", fact: "Middle Eastern nation with ancient history and advanced technology." },
+        { name: "Italy", lat: 41.8719, lng: 12.5674, flag: "🇮🇹", capital: "Rome", region: "Europe", pop: "57.6 M", langs: "Italian", fact: "Mediterranean cradle of Renaissance. Art, history, and world-class cuisine." },
+        { name: "Jamaica", lat: 18.1096, lng: -77.2975, flag: "🇯🇲", capital: "Kingston", region: "Americas", pop: "2.7 M", langs: "English", fact: "Caribbean island famous for reggae music and stunning beaches." },
+        { name: "Japan", lat: 36.2048, lng: 138.2529, flag: "🇯🇵", capital: "Tokyo", region: "Asia", pop: "125 M", langs: "Japanese", fact: "Tech powerhouse blending ancient tradition with cutting-edge innovation." },
+        { name: "Jordan", lat: 30.5852, lng: 36.2384, flag: "🇯🇴", capital: "Amman", region: "Asia", pop: "10.2 M", langs: "Arabic", fact: "Middle Eastern nation home to Petra and Dead Sea." },
+        { name: "Kazakhstan", lat: 48.0196, lng: 66.9237, flag: "🇰🇿", capital: "Astana", region: "Asia", pop: "19.6 M", langs: "Kazakh, Russian", fact: "Central Asian giant with steppes and growing modern cities." },
+        { name: "Kenya", lat: -0.0236, lng: 37.9062, flag: "🇰🇪", capital: "Nairobi", region: "Africa", pop: "54.0 M", langs: "English, Swahili", fact: "East African nation famous for safari, Mount Kilimanjaro, and wildlife." },
+        { name: "Kiribati", lat: 1.3521, lng: 172.9789, flag: "🇰🇮", capital: "South Tarawa", region: "Oceania", pop: "0.1 M", langs: "English, I-Kiribati", fact: "Pacific island nation threatened by rising sea levels." },
+        { name: "Kosovo", lat: 42.6026, lng: 21.1618, flag: "🇽🇰", capital: "Pristina", region: "Europe", pop: "1.7 M", langs: "Albanian", fact: "Youngest European nation with vibrant culture." },
+        { name: "Kuwait", lat: 29.3117, lng: 47.4818, flag: "🇰🇼", capital: "Kuwait City", region: "Asia", pop: "4.3 M", langs: "Arabic", fact: "Oil-rich Gulf nation with modern infrastructure." },
+        { name: "Kyrgyzstan", lat: 41.5015, lng: 74.6671, flag: "🇰🇬", capital: "Bishkek", region: "Asia", pop: "6.8 M", langs: "Kyrgyz, Russian", fact: "Central Asian nation with stunning mountain landscapes." },
+        { name: "Laos", lat: 19.8523, lng: 102.4955, flag: "🇱🇦", capital: "Vientiane", region: "Asia", pop: "7.5 M", langs: "Lao", fact: "Southeast Asian nation with Mekong River and Buddhist culture." },
+        { name: "Latvia", lat: 56.8796, lng: 24.6032, flag: "🇱🇻", capital: "Riga", region: "Europe", pop: "1.9 M", langs: "Latvian", fact: "Baltic nation with medieval Old Town and amber heritage." },
+        { name: "Lebanon", lat: 33.8547, lng: 35.8623, flag: "🇱🇧", capital: "Beirut", region: "Asia", pop: "6.9 M", langs: "Arabic, French", fact: "Mediterranean nation with mountain skiing and ancient ruins." },
+        { name: "Lesotho", lat: -29.6100, lng: 28.2336, flag: "🇱🇸", capital: "Maseru", region: "Africa", pop: "2.1 M", langs: "English, Sotho", fact: "Southern African mountain kingdom completely surrounded by South Africa." },
+        { name: "Liberia", lat: 6.4281, lng: -9.4295, flag: "🇱🇷", capital: "Monrovia", region: "Africa", pop: "5.3 M", langs: "English", fact: "West African nation founded by freed slaves with rich history." },
+        { name: "Libya", lat: 26.3351, lng: 17.2283, flag: "🇱🇾", capital: "Tripoli", region: "Africa", pop: "7.0 M", langs: "Arabic", fact: "North African nation with Sahara Desert and ancient ruins." },
+        { name: "Liechtenstein", lat: 47.2660, lng: 9.5554, flag: "🇱🇮", capital: "Vaduz", region: "Europe", pop: "0.04 M", langs: "German", fact: "Alpine microstate between Switzerland and Austria. Wealthy financial center." },
+        { name: "Lithuania", lat: 55.1694, lng: 23.8812, flag: "🇱🇹", capital: "Vilnius", region: "Europe", pop: "2.8 M", langs: "Lithuanian", fact: "Baltic nation with rich cultural heritage and medieval architecture." },
+        { name: "Luxembourg", lat: 49.8153, lng: 6.1296, flag: "🇱🇺", capital: "Luxembourg City", region: "Europe", pop: "0.7 M", langs: "Luxembourgish, French, German", fact: "Wealthy microstate known for banking and high quality of life." },
+        { name: "Madagascar", lat: -18.7669, lng: 46.8691, flag: "🇲🇬", capital: "Antananarivo", region: "Africa", pop: "29.0 M", langs: "Malagasy, French", fact: "Island nation off East Africa with unique lemurs and biodiversity." },
+        { name: "Malawi", lat: -13.2543, lng: 34.3015, flag: "🇲🇼", capital: "Lilongwe", region: "Africa", pop: "20.2 M", langs: "English, Chichewa", fact: "Southern African nation known as 'The Warm Heart of Africa'." },
+        { name: "Malaysia", lat: 4.2105, lng: 101.6964, flag: "🇲🇾", capital: "Kuala Lumpur", region: "Asia", pop: "34.4 M", langs: "Malay", fact: "Southeast Asian nation with rainforests and modern skyline." },
+        { name: "Maldives", lat: 4.2033, lng: 73.2232, flag: "🇲🇻", capital: "Malé", region: "Asia", pop: "0.5 M", langs: "Maldivian", fact: "Island paradise with world-class diving and luxury resorts." },
+        { name: "Mali", lat: 17.5707, lng: -3.9962, flag: "🇲🇱", capital: "Bamako", region: "Africa", pop: "23.5 M", langs: "French", fact: "West African nation with Sahara desert and rich musical traditions." },
+        { name: "Malta", lat: 35.9375, lng: 14.3754, flag: "🇲🇹", capital: "Valletta", region: "Europe", pop: "0.5 M", langs: "Maltese, English", fact: "Mediterranean island nation with ancient temples and strategic history." },
+        { name: "Marshall Islands", lat: 7.1315, lng: 171.1845, flag: "🇲🇭", capital: "Majuro", region: "Oceania", pop: "0.04 M", langs: "English, Marshallese", fact: "Pacific island nation with unique culture and history." },
+        { name: "Mauritania", lat: 20.7753, lng: -10.9560, flag: "🇲🇷", capital: "Nouakchott", region: "Africa", pop: "4.9 M", langs: "Arabic", fact: "Saharan nation with Islamic heritage and nomadic traditions." },
+        { name: "Mauritius", lat: -20.3484, lng: 57.5522, flag: "🇲🇺", capital: "Port Louis", region: "Africa", pop: "1.3 M", langs: "English, Mauritian Creole", fact: "Island nation off East Africa known for sugar, textiles, and tourism." },
+        { name: "Mexico", lat: 23.6345, lng: -102.5528, flag: "🇲🇽", capital: "Mexico City", region: "Americas", pop: "128.9 M", langs: "Spanish", fact: "North America's largest Spanish-speaking nation with Aztec heritage." },
+        { name: "Micronesia", lat: 7.4256, lng: 150.5508, flag: "🇫🇲", capital: "Palikir", region: "Oceania", pop: "0.1 M", langs: "English", fact: "Pacific island federation with unique culture." },
+        { name: "Moldova", lat: 47.4116, lng: 28.3699, flag: "🇲🇩", capital: "Chișinău", region: "Europe", pop: "3.4 M", langs: "Moldovan", fact: "Eastern European nation known for wine and Soviet heritage." },
+        { name: "Monaco", lat: 43.7384, lng: 7.4246, flag: "🇲🇨", capital: "Monaco", region: "Europe", pop: "0.04 M", langs: "French", fact: "Luxurious microstate on French Riviera. Home to Monaco Grand Prix." },
+        { name: "Mongolia", lat: 46.8625, lng: 103.8467, flag: "🇲🇳", capital: "Ulaanbaatar", region: "Asia", pop: "3.4 M", langs: "Mongolian", fact: "Vast Central Asian steppes with nomadic heritage and Genghis Khan legacy." },
+        { name: "Montenegro", lat: 42.7087, lng: 19.3744, flag: "🇲🇪", capital: "Podgorica", region: "Europe", pop: "0.6 M", langs: "Montenegrin", fact: "Balkan nation with Adriatic coast and mountainous terrain." },
+        { name: "Morocco", lat: 31.7917, lng: -7.0926, flag: "🇲🇦", capital: "Rabat", region: "Africa", pop: "37.8 M", langs: "Arabic, French", fact: "North African kingdom with Sahara deserts, medinas, and Atlantic coast." },
+        { name: "Mozambique", lat: -18.6657, lng: 35.5296, flag: "🇲🇿", capital: "Maputo", region: "Africa", pop: "34.9 M", langs: "Portuguese", fact: "Southern African nation with Indian Ocean beaches and biodiversity." },
+        { name: "Myanmar", lat: 21.9162, lng: 95.9560, flag: "🇲🇲", capital: "Naypyidaw", region: "Asia", pop: "55.5 M", langs: "Burmese", fact: "Southeast Asian nation with ancient temples and natural beauty." },
+        { name: "Namibia", lat: -22.9375, lng: 18.6947, flag: "🇳🇦", capital: "Windhoek", region: "Africa", pop: "2.6 M", langs: "English", fact: "Southern African nation with vast deserts and dramatic landscapes." },
+        { name: "Nauru", lat: -0.5228, lng: 166.9315, flag: "🇳🇷", capital: "Yaren", region: "Oceania", pop: "0.01 M", langs: "English, Nauruan", fact: "Tiny Pacific island nation with phosphate mining heritage." },
+        { name: "Nepal", lat: 28.3949, lng: 84.1240, flag: "🇳🇵", capital: "Kathmandu", region: "Asia", pop: "30.5 M", langs: "Nepali", fact: "Himalayan nation home to Mount Everest and Buddhist culture." },
+        { name: "Netherlands", lat: 52.1326, lng: 5.2913, flag: "🇳🇱", capital: "Amsterdam", region: "Europe", pop: "17.9 M", langs: "Dutch", fact: "Low-lying European nation famous for windmills, bikes, and tulips." },
+        { name: "New Zealand", lat: -40.9006, lng: 174.8860, flag: "🇳🇿", capital: "Wellington", region: "Oceania", pop: "5.2 M", langs: "English, Māori", fact: "Island nation in South Pacific known for Lord of the Rings and adventure." },
+        { name: "Nicaragua", lat: 12.8654, lng: -85.2072, flag: "🇳🇮", capital: "Managua", region: "Americas", pop: "7.1 M", langs: "Spanish", fact: "Central American nation with volcanoes, lakes, and Caribbean beaches." },
+        { name: "Niger", lat: 17.6078, lng: 8.6753, flag: "🇳🇪", capital: "Niamey", region: "Africa", pop: "28.6 M", langs: "French", fact: "Sahel nation with Niger River and vibrant culture." },
+        { name: "Nigeria", lat: 9.0820, lng: 8.6753, flag: "🇳🇬", capital: "Abuja", region: "Africa", pop: "223.8 M", langs: "English", fact: "West Africa's giant. Most populous African nation with Nollywood." },
+        { name: "North Korea", lat: 40.3399, lng: 127.5101, flag: "🇰🇵", capital: "Pyongyang", region: "Asia", pop: "26.2 M", langs: "Korean", fact: "East Asian nation with unique political system and isolation." },
+        { name: "North Macedonia", lat: 41.6086, lng: 21.7453, flag: "🇲🇰", capital: "Skopje", region: "Europe", pop: "2.0 M", langs: "Macedonian", fact: "Balkan nation with ancient history and mountainous terrain." },
+        { name: "Norway", lat: 60.4720, lng: 8.4689, flag: "🇳🇴", capital: "Oslo", region: "Europe", pop: "5.5 M", langs: "Norwegian", fact: "Scandinavian oil-rich nation known for fjords and quality of life." },
+        { name: "Oman", lat: 21.4735, lng: 55.9754, flag: "🇴🇲", capital: "Muscat", region: "Asia", pop: "4.6 M", langs: "Arabic", fact: "Arabian Peninsula nation with ancient frankincense trade heritage." },
+        { name: "Pakistan", lat: 30.3753, lng: 69.3451, flag: "🇵🇰", capital: "Islamabad", region: "Asia", pop: "240.5 M", langs: "Urdu, English", fact: "South Asian nation with Himalayan mountains and rich culture." },
+        { name: "Palau", lat: 7.3150, lng: 134.4816, flag: "🇵🇼", capital: "Ngerulmud", region: "Oceania", pop: "0.02 M", langs: "English, Palauan", fact: "Pacific island nation famous for diving and marine biodiversity." },
+        { name: "Palestine", lat: 31.9454, lng: 35.2338, flag: "🇵🇸", capital: "Ramallah (East Jerusalem)", region: "Asia", pop: "5.2 M", langs: "Arabic", fact: "Middle Eastern territory with ancient history and ongoing conflict." },
+        { name: "Panama", lat: 8.5380, lng: -80.7821, flag: "🇵🇦", capital: "Panama City", region: "Americas", pop: "4.4 M", langs: "Spanish", fact: "Central American nation famous for the Panama Canal." },
+        { name: "Papua New Guinea", lat: -6.3150, lng: 143.9555, flag: "🇵🇬", capital: "Port Moresby", region: "Oceania", pop: "9.4 M", langs: "English, Tok Pisin", fact: "Pacific island with incredible biodiversity and cultural diversity." },
+        { name: "Paraguay", lat: -23.4425, lng: -58.4438, flag: "🇵🇾", capital: "Asunción", region: "Americas", pop: "6.7 M", langs: "Spanish", fact: "South American nation with Guaraní culture and hydroelectric power." },
+        { name: "Peru", lat: -9.1900, lng: -75.0152, flag: "🇵🇪", capital: "Lima", region: "Americas", pop: "34.4 M", langs: "Spanish", fact: "Andean nation home to Machu Picchu and Amazon rainforest." },
+        { name: "Philippines", lat: 12.8797, lng: 121.7740, flag: "🇵🇭", capital: "Manila", region: "Asia", pop: "120.1 M", langs: "Filipino, English", fact: "Southeast Asian island nation known for tropical islands and resilience." },
+        { name: "Poland", lat: 51.9194, lng: 19.1451, flag: "🇵🇱", capital: "Warsaw", region: "Europe", pop: "37.8 M", langs: "Polish", fact: "Central European nation with rich history and medieval architecture." },
+        { name: "Portugal", lat: 39.3999, lng: -8.2245, flag: "🇵🇹", capital: "Lisbon", region: "Europe", pop: "10.4 M", langs: "Portuguese", fact: "Iberian nation on Atlantic with Age of Discovery heritage." },
+        { name: "Qatar", lat: 25.2854, lng: 51.4432, flag: "🇶🇦", capital: "Doha", region: "Asia", pop: "3.1 M", langs: "Arabic", fact: "Gulf nation with vast natural gas reserves and modern development." },
+        { name: "Romania", lat: 45.9432, lng: 24.9668, flag: "🇷🇴", capital: "Bucharest", region: "Europe", pop: "19.1 M", langs: "Romanian", fact: "Eastern European nation with Carpathian mountains and Dracula legend." },
+        { name: "Russia", lat: 61.5240, lng: 105.3188, flag: "🇷🇺", capital: "Moscow", region: "Europe/Asia", pop: "144.4 M", langs: "Russian", fact: "World's largest country spanning 11 time zones with vast resources." },
+        { name: "Rwanda", lat: -1.9403, lng: 29.8739, flag: "🇷🇼", capital: "Kigali", region: "Africa", pop: "13.8 M", langs: "Kinyarwanda, English, French", fact: "East African nation known for mountain gorillas and recovery." },
+        { name: "Saint Kitts and Nevis", lat: 17.2978, lng: -62.7830, flag: "🇰🇳", capital: "Basseterre", region: "Americas", pop: "0.05 M", langs: "English", fact: "Caribbean twin islands with beaches and sugar plantation heritage." },
+        { name: "Saint Lucia", lat: 13.9094, lng: -60.9789, flag: "🇱🇨", capital: "Castries", region: "Americas", pop: "0.2 M", langs: "English", fact: "Caribbean island with volcanic peaks and French colonial architecture." },
+        { name: "Saint Vincent and the Grenadines", lat: 12.9843, lng: -61.2872, flag: "🇻🇨", capital: "Kingstown", region: "Americas", pop: "0.1 M", langs: "English", fact: "Caribbean nation with tropical islands and beaches." },
+        { name: "Samoa", lat: -13.7590, lng: -172.1046, flag: "🇼🇸", capital: "Apia", region: "Oceania", pop: "0.2 M", langs: "English, Samoan", fact: "Pacific island nation with Polynesian culture and hospitality." },
+        { name: "San Marino", lat: 43.9424, lng: 12.4578, flag: "🇸🇲", capital: "San Marino", region: "Europe", pop: "0.04 M", langs: "Italian", fact: "Microstate on Italian peninsula claiming to be oldest republic." },
+        { name: "São Tomé and Príncipe", lat: 0.3163, lng: 6.7131, flag: "🇸🇹", capital: "São Tomé", region: "Africa", pop: "0.2 M", langs: "Portuguese", fact: "Island nation off West Africa with chocolate plantations." },
+        { name: "Saudi Arabia", lat: 23.8859, lng: 45.0792, flag: "🇸🇦", capital: "Riyadh", region: "Asia", pop: "36.4 M", langs: "Arabic", fact: "Middle Eastern kingdom with oil wealth and Islamic heritage." },
+        { name: "Senegal", lat: 14.4974, lng: -14.4524, flag: "🇸🇳", capital: "Dakar", region: "Africa", pop: "17.8 M", langs: "French", fact: "West African nation known for democracy and Sufi culture." },
+        { name: "Serbia", lat: 44.0165, lng: 21.0059, flag: "🇷🇸", capital: "Belgrade", region: "Europe", pop: "6.7 M", langs: "Serbian", fact: "Balkan nation with vibrant nightlife and historic architecture." },
+        { name: "Seychelles", lat: -4.6796, lng: 55.4920, flag: "🇸🇨", capital: "Victoria", region: "Africa", pop: "0.1 M", langs: "English, French, Seychellois", fact: "Island paradise in Indian Ocean with pristine nature." },
+        { name: "Sierra Leone", lat: 8.4606, lng: -11.7799, flag: "🇸🇱", capital: "Freetown", region: "Africa", pop: "8.6 M", langs: "English", fact: "West African nation recovering from conflict with beautiful beaches." },
+        { name: "Singapore", lat: 1.3521, lng: 103.8198, flag: "🇸🇬", capital: "Singapore", region: "Asia", pop: "5.9 M", langs: "English, Mandarin, Malay", fact: "City-state and global financial hub with multicultural society." },
+        { name: "Slovakia", lat: 48.6690, lng: 19.6990, flag: "🇸🇰", capital: "Bratislava", region: "Europe", pop: "5.4 M", langs: "Slovak", fact: "Central European nation with Tatra mountains and medieval towns." },
+        { name: "Slovenia", lat: 46.1512, lng: 14.9955, flag: "🇸🇮", capital: "Ljubljana", region: "Europe", pop: "2.1 M", langs: "Slovenian", fact: "Alpine nation between Mediterranean and Central Europe with green landscape." },
+        { name: "Solomon Islands", lat: -9.6412, lng: 160.1562, flag: "🇸🇧", capital: "Honiara", region: "Oceania", pop: "0.7 M", langs: "English", fact: "Pacific island nation with World War II history." },
+        { name: "Somalia", lat: 5.1521, lng: 46.1996, flag: "🇸🇴", capital: "Mogadishu", region: "Africa", pop: "18.1 M", langs: "Somali", fact: "Horn of Africa nation with Indian Ocean coast and nomadic heritage." },
+        { name: "South Africa", lat: -30.5595, lng: 22.9375, flag: "🇿🇦", capital: "Pretoria", region: "Africa", pop: "59.8 M", langs: "Zulu, English, Afrikaans", fact: "Rainbow nation with wildlife, wines, and Mandela legacy." },
+        { name: "South Korea", lat: 35.9078, lng: 127.7669, flag: "🇰🇷", capital: "Seoul", region: "Asia", pop: "51.9 M", langs: "Korean", fact: "East Asian tech powerhouse. K-pop and Samsung global leaders." },
+        { name: "South Sudan", lat: 6.8770, lng: 31.3070, flag: "🇸🇸", capital: "Juba", region: "Africa", pop: "11.3 M", langs: "English", fact: "Africa's youngest nation with Nile and vast natural resources." },
+        { name: "Spain", lat: 40.4637, lng: -3.7492, flag: "🇪🇸", capital: "Madrid", region: "Europe", pop: "47.8 M", langs: "Spanish", fact: "Iberian nation known for architecture, culture, and Mediterranean lifestyle." },
+        { name: "Sri Lanka", lat: 7.8731, lng: 80.7718, flag: "🇱🇰", capital: "Colombo", region: "Asia", pop: "22.5 M", langs: "Sinhala, Tamil", fact: "Island nation off India with tea, beaches, and Buddhist temples." },
+        { name: "Sudan", lat: 12.8628, lng: 30.2176, flag: "🇸🇩", capital: "Khartoum", region: "Africa", pop: "46.9 M", langs: "Arabic", fact: "Northeastern African nation at confluence of Nile tributaries." },
+        { name: "Suriname", lat: 3.9193, lng: -56.0278, flag: "🇸🇷", capital: "Paramaribo", region: "Americas", pop: "0.6 M", langs: "Dutch", fact: "South American nation with rainforest and multicultural heritage." },
+        { name: "Sweden", lat: 60.1282, lng: 18.6435, flag: "🇸🇪", capital: "Stockholm", region: "Europe", pop: "10.5 M", langs: "Swedish", fact: "Scandinavian nation known for innovation, design, and quality of life." },
+        { name: "Switzerland", lat: 46.8182, lng: 8.2275, flag: "🇨🇭", capital: "Bern", region: "Europe", pop: "8.9 M", langs: "German, French, Italian", fact: "Alpine nation famous for watches, chocolate, and neutrality." },
+        { name: "Syria", lat: 34.8021, lng: 38.9968, flag: "🇸🇾", capital: "Damascus", region: "Asia", pop: "24.6 M", langs: "Arabic", fact: "Middle Eastern nation with ancient history and ongoing conflict." },
+        { name: "Taiwan", lat: 23.6978, lng: 120.9605, flag: "🇹🇼", capital: "Taipei", region: "Asia", pop: "23.8 M", langs: "Mandarin", fact: "Island nation off China with advanced tech industry and vibrant democracy." },
+        { name: "Tajikistan", lat: 38.8610, lng: 71.2761, flag: "🇹🇯", capital: "Dushanbe", region: "Asia", pop: "10.0 M", langs: "Tajik, Russian", fact: "Central Asian mountain nation with Pamir highlands." },
+        { name: "Tanzania", lat: -6.3690, lng: 34.8888, flag: "🇹🇿", capital: "Dar es Salaam", region: "Africa", pop: "65.4 M", langs: "Swahili", fact: "East African nation home to Mount Kilimanjaro and Serengeti." },
+        { name: "Thailand", lat: 15.8700, lng: 100.9925, flag: "🇹🇭", capital: "Bangkok", region: "Asia", pop: "71.8 M", langs: "Thai", fact: "Southeast Asian kingdom known for temples, food, and hospitality." },
+        { name: "Timor-Leste", lat: -8.8383, lng: 125.9181, flag: "🇹🇱", capital: "Dili", region: "Asia", pop: "1.4 M", langs: "Tetum, Portuguese", fact: "Southeast Asian nation with Portuguese heritage and coral seas." },
+        { name: "Togo", lat: 6.1256, lng: 1.2320, flag: "🇹🇬", capital: "Lomé", region: "Africa", pop: "8.8 M", langs: "French", fact: "West African nation on Gulf of Guinea with vibrant culture." },
+        { name: "Tonga", lat: -21.1789, lng: -175.1982, flag: "🇹🇴", capital: "Nuku'alofa", region: "Oceania", pop: "0.1 M", langs: "English, Tonga", fact: "Pacific island kingdom with unique culture and monarchy." },
+        { name: "Trinidad and Tobago", lat: 10.6918, lng: -61.2225, flag: "🇹🇹", capital: "Port of Spain", region: "Americas", pop: "1.4 M", langs: "English", fact: "Caribbean twin islands with energy resources and Carnival." },
+        { name: "Tunisia", lat: 33.8869, lng: 9.5375, flag: "🇹🇳", capital: "Tunis", region: "Africa", pop: "12.5 M", langs: "Arabic, French", fact: "North African nation with Mediterranean coast and Roman ruins." },
+        { name: "Turkey", lat: 38.9637, lng: 35.2433, flag: "🇹🇷", capital: "Ankara", region: "Asia/Europe", pop: "85.3 M", langs: "Turkish", fact: "Bridge between Europe and Asia. Byzantine and Ottoman heritage." },
+        { name: "Turkmenistan", lat: 38.9697, lng: 59.5563, flag: "🇹🇲", capital: "Ashgabat", region: "Asia", pop: "6.2 M", langs: "Turkmen, Russian", fact: "Central Asian nation with Caspian Sea gas reserves." },
+        { name: "Tuvalu", lat: -8.5211, lng: 179.1982, flag: "🇹🇻", capital: "Funafuti", region: "Oceania", pop: "0.01 M", langs: "English, Tuvaluan", fact: "Tiny Pacific island nation vulnerable to climate change." },
+        { name: "Uganda", lat: 1.3733, lng: 32.2903, flag: "🇺🇬", capital: "Kampala", region: "Africa", pop: "48.6 M", langs: "English, Luganda", fact: "East African nation with mountain gorillas and Lake Victoria." },
+        { name: "Ukraine", lat: 48.3794, lng: 31.1656, flag: "🇺🇦", capital: "Kyiv", region: "Europe", pop: "41.2 M", langs: "Ukrainian", fact: "Eastern European nation with historical significance and conflict." },
+        { name: "United Arab Emirates", lat: 23.4241, lng: 53.8478, flag: "🇦🇪", capital: "Abu Dhabi", region: "Asia", pop: "9.9 M", langs: "Arabic", fact: "Gulf federation with Dubai's skyscrapers and oil-based economy." },
+        { name: "United Kingdom", lat: 55.3781, lng: -3.4360, flag: "🇬🇧", capital: "London", region: "Europe", pop: "67.6 M", langs: "English", fact: "Island nation with historical global influence and parliamentary system." },
+        { name: "United States", lat: 37.0902, lng: -95.7129, flag: "🇺🇸", capital: "Washington, D.C.", region: "Americas", pop: "333.2 M", langs: "English", fact: "World's largest economy and technological superpower." },
+        { name: "Uruguay", lat: -32.5228, lng: -55.7658, flag: "🇺🇾", capital: "Montevideo", region: "Americas", pop: "3.4 M", langs: "Spanish", fact: "South American nation known for stability and high quality of life." },
+        { name: "Uzbekistan", lat: 41.3775, lng: 64.5853, flag: "🇺🇿", capital: "Tashkent", region: "Asia", pop: "35.2 M", langs: "Uzbek, Russian", fact: "Central Asian nation on historic Silk Road with ancient cities." },
+        { name: "Vanuatu", lat: -15.3767, lng: 166.9592, flag: "🇻🇺", capital: "Port Vila", region: "Oceania", pop: "0.3 M", langs: "English, French, Bislama", fact: "Pacific island nation with active volcanoes and tropical beauty." },
+        { name: "Vatican City", lat: 41.9029, lng: 12.4534, flag: "🇻🇦", capital: "Vatican City", region: "Europe", pop: "0.0008 M", langs: "Italian, Latin", fact: "Smallest independent state. Spiritual center of Catholicism." },
+        { name: "Venezuela", lat: 6.4238, lng: -66.5897, flag: "🇻🇪", capital: "Caracas", region: "Americas", pop: "28.7 M", langs: "Spanish", fact: "South American nation with world's largest proven oil reserves." },
+        { name: "Vietnam", lat: 14.0583, lng: 108.2772, flag: "🇻🇳", capital: "Hanoi", region: "Asia", pop: "98.2 M", langs: "Vietnamese", fact: "Southeast Asian nation with rapid growth and ancient culture." },
+        { name: "Yemen", lat: 15.3694, lng: 48.5164, flag: "🇾🇪", capital: "Sana'a", region: "Asia", pop: "35.5 M", langs: "Arabic", fact: "Middle Eastern nation on Arabian Peninsula with ongoing conflict." },
+        { name: "Zambia", lat: -13.1339, lng: 27.8493, flag: "🇿🇲", capital: "Lusaka", region: "Africa", pop: "20.0 M", langs: "English", fact: "Southern African nation with Victoria Falls and copper mines." },
+        { name: "Zimbabwe", lat: -19.0154, lng: 29.1549, flag: "🇿🇼", capital: "Harare", region: "Africa", pop: "15.6 M", langs: "English, Shona", fact: "Southern African nation with agricultural heritage and wildlife." }
     ];
+
+    let currentFilter = 'all';
 
     // 1. INITIALIZE GLOBE
     const GlobeViz = Globe()
         (document.getElementById('globeViz'))
         .globeImageUrl('https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg') 
-        .backgroundColor('#1e293b') // Matches the panel color smoothly
+        .backgroundColor('#000814')
         .pointsData(countriesData)
         .pointAltitude(0.05)
-        .pointColor(() => '#fdbb2d')
+        .pointColor(() => '#00d4ff')
         .pointRadius(0.8)
-        .pointLabel('name'); 
+        .pointLabel('name');
 
-    // Initial slow spin
     GlobeViz.controls().autoRotate = true;
     GlobeViz.controls().autoRotateSpeed = 1.0;
 
-    // 2. BUILD CARDS WITH HOVER INTERACTION
+    // 2. BUILD CARDS WITH INTERACTIVITY
     countriesData.sort((a, b) => a.name.localeCompare(b.name));
     const grid = document.getElementById('mainGrid');
 
     countriesData.forEach(country => {
-        // Create the card element
         let card = document.createElement('div');
         card.className = 'card';
+        card.dataset.country = country.name;
+        card.dataset.region = country.region;
         card.innerHTML = `
-            <h2><span class="flag-emoji">${country.flag}</span> ${country.name}</h2>
+            <div class="card-header">
+                <div class="card-title">
+                    <span class="flag-emoji">${country.flag}</span>
+                    <h2>${country.name}</h2>
+                </div>
+            </div>
+            <div class="card-meta">
+                <span class="meta-badge">${country.region}</span>
+            </div>
             <div class="grid-info">
                 <div>🏛️ <b>Capital:</b> ${country.capital}</div>
-                <div>🌍 <b>Region:</b> ${country.region}</div>
-                <div>👥 <b>Pop:</b> ${country.pop}</div>
+                <div>👥 <b>Population:</b> ${country.pop}</div>
+                <div>🗣️ <b>Languages:</b> ${country.langs}</div>
             </div>
+            <div class="card-action">👁️ View Details</div>
         `;
 
-        // THE MAGIC TRICK: Spin globe when hovering over the card
+        // Globe interaction on hover
         card.addEventListener('mouseenter', () => {
-            GlobeViz.controls().autoRotate = false; // Stop the auto-spin
-            GlobeViz.pointOfView({ lat: country.lat, lng: country.lng, altitude: 1.5 }, 1000); // Zoom to country in 1 second
+            GlobeViz.controls().autoRotate = false;
+            GlobeViz.pointOfView({ lat: country.lat, lng: country.lng, altitude: 1.5 }, 800);
         });
 
-        // Resume spinning when mouse leaves
         card.addEventListener('mouseleave', () => {
             GlobeViz.controls().autoRotate = true;
+        });
+
+        // Modal on click
+        card.addEventListener('click', () => {
+            openModal(country);
         });
 
         grid.appendChild(card);
     });
 
-    // 3. SEARCH FUNCTION
+    // 3. MODAL FUNCTIONS
+    function openModal(country) {
+        document.getElementById('modalFlag').textContent = country.flag;
+        document.getElementById('modalCountry').textContent = country.name;
+        document.getElementById('modalCapital').textContent = country.capital;
+        document.getElementById('modalRegion').textContent = country.region;
+        document.getElementById('modalCoords').textContent = `${country.lat.toFixed(2)}°, ${country.lng.toFixed(2)}°`;
+        document.getElementById('modalPop').textContent = country.pop;
+        document.getElementById('modalLangs').textContent = country.langs;
+        document.getElementById('modalFact').textContent = country.fact;
+        
+        document.getElementById('detailModal').classList.add('active');
+        document.body.style.overflow = 'hidden';
+    }
+
+    function closeModal() {
+        document.getElementById('detailModal').classList.remove('active');
+        document.body.style.overflow = 'auto';
+    }
+
+    document.getElementById('detailModal').addEventListener('click', function(e) {
+        if (e.target === this) closeModal();
+    });
+
+    // 4. SEARCH FUNCTIONALITY
     document.getElementById('searchInput').addEventListener('keyup', function() {
-        let val = this.value.toLowerCase();
-        let cards = document.querySelectorAll('.card');
-        cards.forEach(card => {
-            card.style.display = card.innerText.toLowerCase().includes(val) ? '' : 'none';
+        filterCards();
+    });
+
+    // 5. FILTER FUNCTIONALITY
+    document.querySelectorAll('.filter-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
+            currentFilter = this.dataset.filter;
+            filterCards();
         });
     });
+
+    function filterCards() {
+        const searchVal = document.getElementById('searchInput').value.toLowerCase();
+        let visibleCount = 0;
+
+        document.querySelectorAll('.card').forEach(card => {
+            const country = card.dataset.country.toLowerCase();
+            const region = card.dataset.region;
+            const text = card.innerText.toLowerCase();
+            
+            const matchesSearch = text.includes(searchVal);
+            const matchesFilter = currentFilter === 'all' || region === currentFilter;
+
+            if (matchesSearch && matchesFilter) {
+                card.style.display = '';
+                visibleCount++;
+            } else {
+                card.style.display = 'none';
+            }
+        });
+
+        // Show/hide no results message
+        document.getElementById('noResults').style.display = visibleCount === 0 ? 'block' : 'none';
+    }
 </script>
 
 </body>
