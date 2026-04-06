@@ -42,8 +42,8 @@
         }
 
         .card:hover { transform: translateY(-3px); }
-        .card img { width: 60px; height: auto; border-radius: 4px; margin-bottom: 15px; border: 1px solid #e2e8f0; }
         .card h2 { margin: 0 0 10px 0; font-size: 1.4rem; }
+        .flag-emoji { font-size: 3.5rem; margin-bottom: 5px; line-height: 1; }
 
         .section-title { 
             font-size: 0.75rem; letter-spacing: 1px; text-transform: uppercase; 
@@ -54,9 +54,6 @@
             display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px;
             background: #f1f5f9; padding: 12px; border-radius: 6px; font-size: 0.85rem;
         }
-
-        .loading, .error { text-align: center; font-size: 1.2rem; margin-top: 40px; padding: 20px; }
-        .error { color: #dc2626; background: #fee2e2; border-radius: 8px; max-width: 600px; margin-left: auto; margin-right: auto; }
         
         footer { text-align: center; padding: 40px; color: #64748b; font-size: 0.9rem;}
     </style>
@@ -65,79 +62,83 @@
 
 <header>
     <h1 style="margin-bottom: 5px;">ETHOS MAPPER</h1>
-    <p style="margin-top: 0; color: #94a3b8;">Live Data for Every Country on Earth</p>
+    <p style="margin-top: 0; color: #94a3b8;">Instant Data. Zero Load Times.</p>
 </header>
 
 <div class="search-container">
     <input type="text" id="searchInput" placeholder="Search by Country or Capital...">
 </div>
 
-<div class="loading" id="loader">Fetching global data... Please wait 🌍</div>
-<div class="error" id="errorMsg" style="display: none;"></div>
-
 <div class="container" id="mainGrid">
     </div>
 
 <footer>
-    <p>ETHOS MAPPER | Built for Humanity by an Analyst</p>
+    <p>ETHOS MAPPER | Built for Humanity by Dibyendu </p>
 </footer>
 
 <script>
-    // Fetch live data from the API
-    fetch('https://restcountries.com/v3.1/all')
-        .then(response => {
-            if (!response.ok) throw new Error('Network response was not ok');
-            return response.json();
-        })
-        .then(data => {
-            document.getElementById('loader').style.display = 'none'; // Hide loader
-            
-            // Sort countries alphabetically
-            data.sort((a, b) => a.name.common.localeCompare(b.name.common));
+    // THE OFFLINE DATABASE: Hardcoded to bypass network blocks
+    const countriesData = [
+        { name: "India", flag: "🇮🇳", capital: "New Delhi", region: "Asia", pop: "1.42 Billion", langs: "Hindi, English" },
+        { name: "Japan", flag: "🇯🇵", capital: "Tokyo", region: "Asia", pop: "125 Million", langs: "Japanese" },
+        { name: "France", flag: "🇫🇷", capital: "Paris", region: "Europe", pop: "67.9 Million", langs: "French" },
+        { name: "Brazil", flag: "🇧🇷", capital: "Brasília", region: "Americas", pop: "215.3 Million", langs: "Portuguese" },
+        { name: "United States", flag: "🇺🇸", capital: "Washington, D.C.", region: "Americas", pop: "333.2 Million", langs: "English" },
+        { name: "South Africa", flag: "🇿🇦", capital: "Pretoria", region: "Africa", pop: "59.8 Million", langs: "Zulu, Xhosa, English" },
+        { name: "Australia", flag: "🇦🇺", capital: "Canberra", region: "Oceania", pop: "26.0 Million", langs: "English" },
+        { name: "Egypt", flag: "🇪🇬", capital: "Cairo", region: "Africa", pop: "110.9 Million", langs: "Arabic" },
+        { name: "Canada", flag: "🇨🇦", capital: "Ottawa", region: "Americas", pop: "38.9 Million", langs: "English, French" },
+        { name: "Germany", flag: "🇩🇪", capital: "Berlin", region: "Europe", pop: "83.2 Million", langs: "German" },
+        { name: "Mexico", flag: "🇲🇽", capital: "Mexico City", region: "Americas", pop: "127.5 Million", langs: "Spanish" },
+        { name: "Italy", flag: "🇮🇹", capital: "Rome", region: "Europe", pop: "58.9 Million", langs: "Italian" },
+        { name: "United Kingdom", flag: "🇬🇧", capital: "London", region: "Europe", pop: "67.3 Million", langs: "English" },
+        { name: "China", flag: "🇨🇳", capital: "Beijing", region: "Asia", pop: "1.41 Billion", langs: "Mandarin" },
+        { name: "Argentina", flag: "🇦🇷", capital: "Buenos Aires", region: "Americas", pop: "46.2 Million", langs: "Spanish" },
+        { name: "Nigeria", flag: "🇳🇬", capital: "Abuja", region: "Africa", pop: "213.4 Million", langs: "English, Hausa" },
+        { name: "Spain", flag: "🇪🇸", capital: "Madrid", region: "Europe", pop: "47.4 Million", langs: "Spanish" },
+        { name: "South Korea", flag: "🇰🇷", capital: "Seoul", region: "Asia", pop: "51.7 Million", langs: "Korean" },
+        { name: "Kenya", flag: "🇰🇪", capital: "Nairobi", region: "Africa", pop: "53.0 Million", langs: "Swahili, English" },
+        { name: "Saudi Arabia", flag: "🇸🇦", capital: "Riyadh", region: "Asia", pop: "35.9 Million", langs: "Arabic" }
+    ];
 
-            const grid = document.getElementById('mainGrid');
+    // Sort alphabetically automatically
+    countriesData.sort((a, b) => a.name.localeCompare(b.name));
 
-            // Loop through all countries
-            data.forEach(country => {
-                let name = country.name.common;
-                let flag = country.flags.svg;
-                let capital = country.capital ? country.capital[0] : "None";
-                let region = country.region;
-                let pop = country.population.toLocaleString();
-                let langs = country.languages ? Object.values(country.languages).slice(0,2).join(", ") : "Various";
+    const grid = document.getElementById('mainGrid');
 
-                let cardHTML = `
-                    <div class="card">
-                        <img src="${flag}" alt="Flag of ${name}">
-                        <h2>${name}</h2>
-                        
-                        <span class="section-title">Essential Vitals</span>
-                        <div class="grid-info">
-                            <div>🏛️ <b>Capital:</b> ${capital}</div>
-                            <div>🌍 <b>Region:</b> ${region}</div>
-                            <div>👥 <b>Pop:</b> ${pop}</div>
-                            <div>🗣️ <b>Lang:</b> ${langs}</div>
-                        </div>
+    // Build the grid instantly
+    countriesData.forEach(country => {
+        let cardHTML = `
+            <div class="card">
+                <div class="flag-emoji">${country.flag}</div>
+                <h2>${country.name}</h2>
+                
+                <span class="section-title">Essential Vitals</span>
+                <div class="grid-info">
+                    <div>🏛️ <b>Capital:</b> ${country.capital}</div>
+                    <div>🌍 <b>Region:</b> ${country.region}</div>
+                    <div>👥 <b>Pop:</b> ${country.pop}</div>
+                    <div>🗣️ <b>Lang:</b> ${country.langs}</div>
+                </div>
 
-                        <span class="section-title">Analyst Note</span>
-                        <p style="font-size: 0.85rem; color: #475569; margin-bottom: 0;">
-                            Part of the <b>${country.subregion || region}</b> zone. 
-                        </p>
-                    </div>
-                `;
-                grid.innerHTML += cardHTML;
-            });
-        })
-        .catch(error => {
-            document.getElementById('loader').style.display = 'none';
-            let errorDiv = document.getElementById('errorMsg');
-            errorDiv.style.display = 'block';
-            errorDiv.innerHTML = `⚠️ <b>Data Connection Failed.</b><br><br>If you are opening this file locally (file:///), your browser is blocking the data for security. Please view this file on your live GitHub Pages link.`;
-        });
+                <span class="section-title">Analyst Note</span>
+                <p style="font-size: 0.85rem; color: #475569; margin-bottom: 0;">
+                    Part of the <b>${country.region}</b> zone. Safe-loaded from internal database.
+                </p>
+            </div>
+        `;
+        grid.innerHTML += cardHTML;
+    });
 
-    // Search Bar Functionality
+    // Instant Search Filter
     document.getElementById('searchInput').addEventListener('keyup', function() {
         let val = this.value.toLowerCase();
         let cards = document.querySelectorAll('.card');
         cards.forEach(card => {
-            card.style.
+            card.style.display = card.innerText.toLowerCase().includes(val) ? '' : 'none';
+        });
+    });
+</script>
+
+</body>
+</html>
