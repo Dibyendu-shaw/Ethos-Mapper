@@ -105,17 +105,19 @@
         { name: "Italy", lat: 41.8719, lng: 12.5674, flag: "🇮🇹", capital: "Rome", region: "Europe", pop: "58.9 Million", langs: "Italian" }
     ];
 
-    // 1. INITIALIZE THE 3D GLOBE
+    // 1. // 1. INITIALIZE THE 3D GLOBE
     const GlobeViz = Globe()
         (document.getElementById('globeViz'))
-        .globeImageUrl('https://unpkg.com/three-globe/example/img/earth-dark.jpg') // Dark mode earth
+        // Switched to a bright, daytime Earth texture
+        .globeImageUrl('https://unpkg.com/three-globe/example/img/earth-blue-marble.jpg') 
         .bumpImageUrl('https://unpkg.com/three-globe/example/img/earth-topology.png')
-        .backgroundColor('#000000')
-        .pointsData(countriesData) // Feed our data to the globe
+        // Switched background to match your deep-blue header
+        .backgroundColor('#0f172a') 
+        .pointsData(countriesData) 
         .pointAltitude(0.05)
-        .pointColor(() => '#34d399') // Green dots
+        .pointColor(() => '#fdbb2d') // Changed dots to a bright yellow/gold to pop against the blue
         .pointRadius(0.5)
-        .pointLabel('name'); // Show country name on hover
+        .pointLabel('name');
 
     // Spin the globe slowly automatically
     GlobeViz.controls().autoRotate = true;
