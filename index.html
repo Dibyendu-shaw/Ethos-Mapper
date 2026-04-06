@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ethos Mapper | Global Intelligence</title>
+    <style>
+        :root {
+            --dark: #0f172a;
+            --primary: #2563eb;
+            --accent: #10b981;
+            --bg: #f8fafc;
+            --card: #ffffff;
+        }
+
+        body { font-family: 'Inter', sans-serif; margin: 0; background: var(--bg); color: var(--dark); }
+        
+        header { 
+            background: var(--dark); color: white; padding: 60px 20px; text-align: center;
+            border-bottom: 4px solid var(--primary);
+        }
+
+        .search-container { text-align: center; padding: 40px 20px; }
+        
+        input { 
+            width: 100%; max-width: 500px; padding: 15px; border-radius: 8px;
+            border: 1px solid #ddd; font-size: 1rem; outline: none;
+        }
+
+        .container { 
+            max-width: 1200px; margin: auto; display: grid; 
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); 
+            gap: 25px; padding: 20px; 
+        }
+
+        .card { 
+            background: var(--card); border-radius: 12px; padding: 25px; 
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+            transition: 0.3s;
+        }
+
+        .card:hover { transform: translateY(-5px); }
+        .card img { width: 50px; border-radius: 4px; margin-bottom: 10px; border: 1px solid #ddd; }
+
+        .section-title { 
+            font-size: 0.75rem; letter-spacing: 1px; text-transform: uppercase; 
+            color: var(--primary); font-weight: 800; margin-top: 15px; display: block;
+        }
+
+        .grid-info { 
+            display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 15px;
+            background: #f1f5f9; padding: 10px; border-radius: 6px; font-size: 0.85rem;
+        }
+
+        .loading { text-align: center; font-size: 1.2rem; color: #64748b; margin-top: 50px; }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>ETHOS MAPPER</h1>
+    <p>Live Data for Every Country on Earth</p>
+</header>
+
+<div class="search-container">
+    <input type="text" id="searchInput" placeholder="Search by Country or Capital...">
+</div>
+
+<div class="loading" id="loader">Loading global data... 🌍</div>
+
+<div class="container" id="mainGrid">
+    </div>
+
+<script>
+    // THE ANALYST METHOD: Fetching live data from an API
+    fetch('https://restcountries.com/v3.1/all')
+        .then(response => response.json())
+        .then(data => {
+            document.getElementById('loader').style.display = 'none'; // Hide loader
+            
+            // Sort countries alphabetically
+            data.sort((a, b) => a.name.common.localeCompare(b.name.common));
+
+            const grid = document.getElementById('mainGrid');
+
+            // Loop through all 195+ countries
+            data.forEach(country => {
+                // Extract useful data
+                let name = country.name.common;
+                let flag = country.flags.svg;
+                let capital = country.capital ? country.capital[0] : "None";
+                let region = country.region;
+                let pop = country.population.toLocaleString(); // Format with commas
+                let langs = country.languages ? Object.values(country.languages).slice(0,2).join(", ") : "Various";
+
+                // Create the HTML Card
+                let cardHTML = `
+                    <div class="card">
+                        <img src="${flag}" alt="Flag of ${name}">
+                        <h2 style="margin:0">${name}</h2>
+                        
+                        <span class="section-title">Essential Vitals</span>
+                        <div class="grid-info">
+                            <div>🏛️ Capital: ${capital}</div>
+                            <div>🌍 Region: ${region}</div>
+                            <div>👥 Pop: ${pop}</div>
+                            <div>🗣️ Lang: ${langs}</div>
+                        </div>
+
+                        <span class="section-title">Analyst Note</span>
+                        <p style="font-size: 0.85rem; color: #475569;">
+                            This region is part of the <b>${country.subregion || region}</b> geographical zone. 
+                            <br><br><i>Add local Ethos data here via GitHub later.</i>
+                        </p>
+                    </div>
+                `;
+                
+                // Add it to the page
+                grid.innerHTML += cardHTML;
+            });
+        });
+
+    // Make the Search Bar work
+    document.getElementById('searchInput').addEventListener('keyup', function() {
+        let val = this.value.toLowerCase();
+        let cards = document.querySelectorAll('.card');
+        cards.forEach(card => {
+            card.style.display = card.innerText.toLowerCase().includes(val) ? '' : 'none';
+        });
+    });
+</script>
+
+</body>
+</html>
