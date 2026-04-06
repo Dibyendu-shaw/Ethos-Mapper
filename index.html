@@ -3,12 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ethos Mapper | Global Intelligence</title>
+    <title>Ethos Mapper | 3D Global Intelligence</title>
+    
+    <script src="https://unpkg.com/three"></script>
+    <script src="https://unpkg.com/globe.gl"></script>
+
     <style>
         :root {
             --dark: #0f172a;
             --primary: #2563eb;
-            --accent: #10b981;
             --bg: #f8fafc;
             --card: #ffffff;
         }
@@ -16,16 +19,25 @@
         body { font-family: 'Inter', system-ui, sans-serif; margin: 0; background: var(--bg); color: var(--dark); }
         
         header { 
-            background: var(--dark); color: white; padding: 50px 20px; text-align: center;
-            border-bottom: 4px solid var(--primary);
+            background: var(--dark); color: white; padding: 40px 20px; text-align: center;
         }
 
-        .search-container { text-align: center; padding: 30px 20px; }
+        /* Container for the 3D Globe */
+        #globeViz {
+            width: 100%;
+            height: 400px;
+            background-color: #000;
+            border-bottom: 4px solid var(--primary);
+            cursor: grab;
+        }
+        #globeViz:active { cursor: grabbing; }
+
+        .search-container { text-align: center; padding: 30px 20px; margin-top: -30px; position: relative; z-index: 10; }
         
         input { 
             width: 100%; max-width: 500px; padding: 15px; border-radius: 8px;
             border: 1px solid #cbd5e1; font-size: 1rem; outline: none;
-            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            box-shadow: 0 10px 15px rgba(0,0,0,0.1);
         }
 
         .container { 
@@ -38,10 +50,8 @@
             background: var(--card); border-radius: 8px; padding: 20px; 
             box-shadow: 0 4px 10px rgba(0,0,0,0.08);
             border-top: 4px solid var(--primary);
-            transition: transform 0.2s;
         }
 
-        .card:hover { transform: translateY(-3px); }
         .card h2 { margin: 0 0 10px 0; font-size: 1.4rem; }
         .flag-emoji { font-size: 3.5rem; margin-bottom: 5px; line-height: 1; }
 
@@ -62,8 +72,10 @@
 
 <header>
     <h1 style="margin-bottom: 5px;">ETHOS MAPPER</h1>
-    <p style="margin-top: 0; color: #94a3b8;">Instant Data. Zero Load Times.</p>
+    <p style="margin-top: 0; color: #94a3b8;">Interactive Global Data</p>
 </header>
+
+<div id="globeViz"></div>
 
 <div class="search-container">
     <input type="text" id="searchInput" placeholder="Search by Country or Capital...">
@@ -73,40 +85,46 @@
     </div>
 
 <footer>
-    <p>ETHOS MAPPER | Built for Humanity by Dibyendu </p>
+    <p>ETHOS MAPPER | Built for Humanity by an Analyst</p>
 </footer>
 
 <script>
-    // THE OFFLINE DATABASE: Hardcoded to bypass network blocks
+    // THE OFFLINE DATABASE (Now with Latitude and Longitude for the map!)
     const countriesData = [
-        { name: "India", flag: "🇮🇳", capital: "New Delhi", region: "Asia", pop: "1.42 Billion", langs: "Hindi, English" },
-        { name: "Japan", flag: "🇯🇵", capital: "Tokyo", region: "Asia", pop: "125 Million", langs: "Japanese" },
-        { name: "France", flag: "🇫🇷", capital: "Paris", region: "Europe", pop: "67.9 Million", langs: "French" },
-        { name: "Brazil", flag: "🇧🇷", capital: "Brasília", region: "Americas", pop: "215.3 Million", langs: "Portuguese" },
-        { name: "United States", flag: "🇺🇸", capital: "Washington, D.C.", region: "Americas", pop: "333.2 Million", langs: "English" },
-        { name: "South Africa", flag: "🇿🇦", capital: "Pretoria", region: "Africa", pop: "59.8 Million", langs: "Zulu, Xhosa, English" },
-        { name: "Australia", flag: "🇦🇺", capital: "Canberra", region: "Oceania", pop: "26.0 Million", langs: "English" },
-        { name: "Egypt", flag: "🇪🇬", capital: "Cairo", region: "Africa", pop: "110.9 Million", langs: "Arabic" },
-        { name: "Canada", flag: "🇨🇦", capital: "Ottawa", region: "Americas", pop: "38.9 Million", langs: "English, French" },
-        { name: "Germany", flag: "🇩🇪", capital: "Berlin", region: "Europe", pop: "83.2 Million", langs: "German" },
-        { name: "Mexico", flag: "🇲🇽", capital: "Mexico City", region: "Americas", pop: "127.5 Million", langs: "Spanish" },
-        { name: "Italy", flag: "🇮🇹", capital: "Rome", region: "Europe", pop: "58.9 Million", langs: "Italian" },
-        { name: "United Kingdom", flag: "🇬🇧", capital: "London", region: "Europe", pop: "67.3 Million", langs: "English" },
-        { name: "China", flag: "🇨🇳", capital: "Beijing", region: "Asia", pop: "1.41 Billion", langs: "Mandarin" },
-        { name: "Argentina", flag: "🇦🇷", capital: "Buenos Aires", region: "Americas", pop: "46.2 Million", langs: "Spanish" },
-        { name: "Nigeria", flag: "🇳🇬", capital: "Abuja", region: "Africa", pop: "213.4 Million", langs: "English, Hausa" },
-        { name: "Spain", flag: "🇪🇸", capital: "Madrid", region: "Europe", pop: "47.4 Million", langs: "Spanish" },
-        { name: "South Korea", flag: "🇰🇷", capital: "Seoul", region: "Asia", pop: "51.7 Million", langs: "Korean" },
-        { name: "Kenya", flag: "🇰🇪", capital: "Nairobi", region: "Africa", pop: "53.0 Million", langs: "Swahili, English" },
-        { name: "Saudi Arabia", flag: "🇸🇦", capital: "Riyadh", region: "Asia", pop: "35.9 Million", langs: "Arabic" }
+        { name: "India", lat: 20.5937, lng: 78.9629, flag: "🇮🇳", capital: "New Delhi", region: "Asia", pop: "1.42 Billion", langs: "Hindi, English" },
+        { name: "Japan", lat: 36.2048, lng: 138.2529, flag: "🇯🇵", capital: "Tokyo", region: "Asia", pop: "125 Million", langs: "Japanese" },
+        { name: "France", lat: 46.2276, lng: 2.2137, flag: "🇫🇷", capital: "Paris", region: "Europe", pop: "67.9 Million", langs: "French" },
+        { name: "Brazil", lat: -14.2350, lng: -51.9253, flag: "🇧🇷", capital: "Brasília", region: "Americas", pop: "215.3 Million", langs: "Portuguese" },
+        { name: "United States", lat: 37.0902, lng: -95.7129, flag: "🇺🇸", capital: "Washington, D.C.", region: "Americas", pop: "333.2 Million", langs: "English" },
+        { name: "South Africa", lat: -30.5595, lng: 22.9375, flag: "🇿🇦", capital: "Pretoria", region: "Africa", pop: "59.8 Million", langs: "Zulu, English" },
+        { name: "Australia", lat: -25.2744, lng: 133.7751, flag: "🇦🇺", capital: "Canberra", region: "Oceania", pop: "26.0 Million", langs: "English" },
+        { name: "Egypt", lat: 26.8206, lng: 30.8025, flag: "🇪🇬", capital: "Cairo", region: "Africa", pop: "110.9 Million", langs: "Arabic" },
+        { name: "Canada", lat: 56.1304, lng: -106.3468, flag: "🇨🇦", capital: "Ottawa", region: "Americas", pop: "38.9 Million", langs: "English, French" },
+        { name: "Germany", lat: 51.1657, lng: 10.4515, flag: "🇩🇪", capital: "Berlin", region: "Europe", pop: "83.2 Million", langs: "German" },
+        { name: "Mexico", lat: 23.6345, lng: -102.5528, flag: "🇲🇽", capital: "Mexico City", region: "Americas", pop: "127.5 Million", langs: "Spanish" },
+        { name: "Italy", lat: 41.8719, lng: 12.5674, flag: "🇮🇹", capital: "Rome", region: "Europe", pop: "58.9 Million", langs: "Italian" }
     ];
 
-    // Sort alphabetically automatically
-    countriesData.sort((a, b) => a.name.localeCompare(b.name));
+    // 1. INITIALIZE THE 3D GLOBE
+    const GlobeViz = Globe()
+        (document.getElementById('globeViz'))
+        .globeImageUrl('https://unpkg.com/three-globe/example/img/earth-dark.jpg') // Dark mode earth
+        .bumpImageUrl('https://unpkg.com/three-globe/example/img/earth-topology.png')
+        .backgroundColor('#000000')
+        .pointsData(countriesData) // Feed our data to the globe
+        .pointAltitude(0.05)
+        .pointColor(() => '#34d399') // Green dots
+        .pointRadius(0.5)
+        .pointLabel('name'); // Show country name on hover
 
+    // Spin the globe slowly automatically
+    GlobeViz.controls().autoRotate = true;
+    GlobeViz.controls().autoRotateSpeed = 1.5;
+
+    // 2. BUILD THE DATA GRID
+    countriesData.sort((a, b) => a.name.localeCompare(b.name));
     const grid = document.getElementById('mainGrid');
 
-    // Build the grid instantly
     countriesData.forEach(country => {
         let cardHTML = `
             <div class="card">
@@ -120,17 +138,12 @@
                     <div>👥 <b>Pop:</b> ${country.pop}</div>
                     <div>🗣️ <b>Lang:</b> ${country.langs}</div>
                 </div>
-
-                <span class="section-title">Analyst Note</span>
-                <p style="font-size: 0.85rem; color: #475569; margin-bottom: 0;">
-                    Part of the <b>${country.region}</b> zone. Safe-loaded from internal database.
-                </p>
             </div>
         `;
         grid.innerHTML += cardHTML;
     });
 
-    // Instant Search Filter
+    // 3. SEARCH FUNCTION
     document.getElementById('searchInput').addEventListener('keyup', function() {
         let val = this.value.toLowerCase();
         let cards = document.querySelectorAll('.card');
