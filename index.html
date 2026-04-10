@@ -451,6 +451,99 @@ body::before{
 ::-webkit-scrollbar-track{background:transparent;}
 ::-webkit-scrollbar-thumb{background:var(--border2);border-radius:3px;}
 ::-webkit-scrollbar-thumb:hover{background:var(--muted2);}
+
+/* DARK MODE */
+body.dark-mode{
+  --bg:       #0f1419;
+  --bg2:      #1a1f2e;
+  --bg3:      #252d3d;
+  --white:    #1e2332;
+  --panel:    #161b28;
+  --border:   #2a3142;
+  --border2:  #35404f;
+  --text:     #e8eef7;
+  --text2:    #b8c5d6;
+  --muted:    #8b96a8;
+  --muted2:   #6b7a8f;
+  --shadow:   rgba(0,0,0,0.3);
+  --shadow2:  rgba(0,0,0,0.5);
+}
+
+/* Theme Toggle */
+.theme-toggle{
+  width:44px;height:44px;border-radius:10px;
+  background:var(--white);border:1.5px solid var(--border);
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  font-size:1.2rem;transition:all .3s;
+}
+.theme-toggle:hover{border-color:var(--primary);background:var(--primary-light);}
+
+/* Stats Banner */
+.stats-banner{
+  background:linear-gradient(135deg,var(--primary-light),var(--purple-light));
+  border:1.5px solid var(--primary);border-radius:14px;
+  padding:20px;margin-bottom:20px;
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;
+  box-shadow:0 4px 12px var(--shadow);
+}
+.stat-card{
+  background:var(--white);border-radius:10px;padding:14px;
+  text-align:center;border:1px solid var(--border);
+}
+.stat-val{font-size:1.3rem;font-weight:800;color:var(--primary);}
+.stat-lbl{font-size:.65rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-top:4px;font-family:var(--font-mono);}
+
+/* Sort & View Options */
+.view-controls{
+  display:flex;gap:10px;align-items:center;padding:12px 24px;
+  background:var(--white);border-bottom:1.5px solid var(--border);
+}
+.vc-label{font-size:.75rem;color:var(--muted);font-family:var(--font-mono);letter-spacing:.5px;}
+.vc-select{
+  padding:6px 12px;border-radius:8px;border:1.5px solid var(--border);
+  background:var(--panel);color:var(--text);font-family:var(--font-head);
+  font-size:.78rem;cursor:pointer;transition:all .2s;
+}
+.vc-select:hover,.vc-select:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(37,99,235,.1);}
+.vc-select option{background:var(--panel);color:var(--text);}
+
+/* Shortcuts Dialog */
+.shortcuts-dialog{
+  display:none;position:fixed;inset:0;background:rgba(28,25,23,.6);
+  backdrop-filter:blur(8px);z-index:999;align-items:center;justify-content:center;
+  animation:fadeIn .3s;
+}
+.shortcuts-dialog.active{display:flex;}
+.shortcuts-content{
+  background:var(--white);border:1.5px solid var(--border);border-radius:16px;
+  padding:28px;max-width:480px;width:90%;max-height:80vh;overflow-y:auto;
+  animation:modalIn .3s cubic-bezier(.34,1.56,.64,1);
+}
+.shortcuts-title{font-size:1.3rem;font-weight:800;color:var(--text);margin-bottom:18px;}
+.shortcut-item{display:flex;align-items:center;justify-content:space-between;
+  padding:10px 0;border-bottom:1px solid var(--border);font-size:.85rem;}
+.shortcut-item:last-child{border-bottom:none;}
+.shortcut-key{
+  font-family:var(--font-mono);background:var(--bg2);
+  padding:4px 8px;border-radius:4px;font-weight:600;color:var(--primary);
+}
+.shortcut-desc{color:var(--muted);font-size:.8rem;}
+
+/* Export Button */
+.export-btn{
+  padding:7px 16px;border-radius:8px;border:1.5px solid var(--border);
+  background:var(--white);color:var(--muted);font-family:var(--font-head);
+  font-size:.78rem;font-weight:600;cursor:pointer;transition:all .2s;
+}
+.export-btn:hover{background:var(--primary);border-color:var(--primary);color:#fff;box-shadow:0 4px 12px rgba(37,99,235,.2);}
+
+/* Help Icon */
+.help-icon{
+  width:24px;height:24px;border-radius:50%;border:1.5px solid var(--border);
+  display:flex;align-items:center;justify-content:center;color:var(--muted);
+  cursor:pointer;font-size:.85rem;transition:all .2s;
+}
+.help-icon:hover{border-color:var(--primary);color:var(--primary);background:var(--primary-light);}
 </style>
 </head>
 <body>
@@ -478,6 +571,7 @@ body::before{
       <div class="nav-stat-label">Comparing</div>
     </div>
     <div class="live-pill"><div class="live-dot"></div>LIVE</div>
+    <button class="theme-toggle" id="themeToggle" title="Toggle Dark/Light Mode">🌙</button>
   </div>
 </nav>
 
@@ -486,6 +580,9 @@ body::before{
   <div class="tab active" data-tab="explorer">🗺️ Explorer</div>
   <div class="tab" data-tab="chart">📊 Population Chart</div>
   <div class="tab" data-tab="compare">⚖️ Compare Countries</div>
+  <div style="margin-left:auto;padding:14px 28px;">
+    <button class="help-icon" id="helpBtn" title="Keyboard Shortcuts">?</button>
+  </div>
 </div>
 
 <!-- PAGE WRAPPER -->
@@ -527,6 +624,32 @@ body::before{
           <button class="fb" data-filter="Africa">Africa</button>
           <button class="fb" data-filter="Americas">Americas</button>
           <button class="fb" data-filter="Oceania">Oceania</button>
+        </div>
+        <div class="view-controls">
+          <span class="vc-label">SORT BY:</span>
+          <select class="vc-select" id="sortBy">
+            <option value="name">Name (A-Z)</option>
+            <option value="population">Population (High-Low)</option>
+            <option value="region">Region</option>
+          </select>
+        </div>
+        <div class="stats-banner" id="statsBanner">
+          <div class="stat-card">
+            <div class="stat-val" id="avgPop">2.3B</div>
+            <div class="stat-lbl">Avg Population</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-val" id="totalCountries">195</div>
+            <div class="stat-lbl">Total Countries</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-val" id="mostPopulated">China</div>
+            <div class="stat-lbl">Most Populated</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-val" id="totalRegions">5</div>
+            <div class="stat-lbl">Regions</div>
+          </div>
         </div>
         <div class="rc"><span id="countDisplay">195</span> countries · Click to focus globe · <span style="color:var(--accent);">Toggle Compare</span> to select up to 4</div>
       </div>
@@ -570,8 +693,13 @@ body::before{
 
   <!-- ── TAB 3: COMPARE ── -->
   <div id="tab-compare" class="compare-page">
-    <div class="page-title">Country Comparison</div>
-    <div class="page-sub">Select up to 4 countries from the Explorer tab to compare side by side</div>
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px;">
+      <div>
+        <div class="page-title">Country Comparison</div>
+        <div class="page-sub">Select up to 4 countries from the Explorer tab to compare side by side</div>
+      </div>
+      <button class="export-btn" onclick="exportComparison()" title="Export selected countries as CSV">📥 Export CSV</button>
+    </div>
 
     <div class="compare-notice">
       💡 Go to <strong>Explorer</strong> tab → click the <strong>Compare</strong> button on any card → then return here to see the comparison.
@@ -614,6 +742,43 @@ body::before{
     <div class="ms">
       <div class="ms-title">✦ Quick Fact</div>
       <div class="ms-body"><div class="fact-box" id="mFact"></div></div>
+    </div>
+  </div>
+</div>
+
+<!-- SHORTCUTS DIALOG -->
+<div class="shortcuts-dialog" id="shortcutsDialog">
+  <div class="shortcuts-content">
+    <div class="shortcuts-title">⌨️ Keyboard Shortcuts</div>
+    <div class="shortcut-item">
+      <div><span class="shortcut-key">Click Card</span><span class="shortcut-desc">Focus globe on country</span></div>
+    </div>
+    <div class="shortcut-item">
+      <div><span class="shortcut-key">Hover Card</span><span class="shortcut-desc">Preview globe position</span></div>
+    </div>
+    <div class="shortcut-item">
+      <div><span class="shortcut-key">Drag Globe</span><span class="shortcut-desc">Rotate 3D visualization</span></div>
+    </div>
+    <div class="shortcut-item">
+      <div><span class="shortcut-key">Scroll Globe</span><span class="shortcut-desc">Zoom in/out</span></div>
+    </div>
+    <div class="shortcut-item">
+      <div><span class="shortcut-key">Tab Switcher</span><span class="shortcut-desc">Switch between views</span></div>
+    </div>
+    <div class="shortcut-item">
+      <div><span class="shortcut-key">Search Input</span><span class="shortcut-desc">Find countries quickly</span></div>
+    </div>
+    <div class="shortcut-item">
+      <div><span class="shortcut-key">Region Filters</span><span class="shortcut-desc">Filter by continent</span></div>
+    </div>
+    <div class="shortcut-item">
+      <div><span class="shortcut-key">Sort Options</span><span class="shortcut-desc">Organize countries</span></div>
+    </div>
+    <div class="shortcut-item">
+      <div><span class="shortcut-key">Compare Button</span><span class="shortcut-desc">Select up to 4 countries</span></div>
+    </div>
+    <div class="shortcut-item">
+      <div><span class="shortcut-key">Export Data</span><span class="shortcut-desc">Download comparison as CSV</span></div>
     </div>
   </div>
 </div>
@@ -1116,6 +1281,99 @@ requestAnimationFrame(()=>requestAnimationFrame(()=>{
   }, 300);
 }));
 renderCompare();
+
+// ─── NEW FEATURES ───
+
+// Theme Toggle
+const themeToggle=document.getElementById('themeToggle');
+const isDark=localStorage.getItem('ethos-dark-mode')==='true';
+if(isDark) document.body.classList.add('dark-mode');
+themeToggle.textContent=isDark?'☀️':'🌙';
+themeToggle.addEventListener('click',()=>{
+  const isDark=document.body.classList.toggle('dark-mode');
+  localStorage.setItem('ethos-dark-mode',isDark);
+  themeToggle.textContent=isDark?'☀️':'🌙';
+});
+
+// Update Stats Banner
+function updateStatsBanner(){
+  const totalPop=countries.reduce((a,c)=>a+c.popN,0);
+  const avgPop=(totalPop/countries.length).toFixed(1);
+  const mostPop=countries.reduce((a,b)=>a.popN>b.popN?a:b);
+  document.getElementById('avgPop').textContent=(avgPop>1000?(avgPop/1000).toFixed(1)+'B':avgPop+'M');
+  document.getElementById('mostPopulated').textContent=mostPop.name;
+}
+updateStatsBanner();
+
+// Sorting
+document.getElementById('sortBy').addEventListener('change',e=>{
+  const sortBy=e.target.value;
+  const cards=document.querySelectorAll('.card');
+  const cardsArr=Array.from(cards);
+  
+  cardsArr.sort((a,b)=>{
+    const cta=countries.find(c=>c.name===a.dataset.countryName);
+    const ctb=countries.find(c=>c.name===b.dataset.countryName);
+    
+    if(sortBy==='name') return cta.name.localeCompare(ctb.name);
+    if(sortBy==='population') return ctb.popN-cta.popN;
+    if(sortBy==='region') return cta.region.localeCompare(ctb.region);
+    return 0;
+  });
+  
+  const grid=document.getElementById('mainGrid');
+  cardsArr.forEach(card=>grid.appendChild(card));
+});
+
+// Add data attribute to cards
+countries.forEach(ct=>{
+  setTimeout(()=>{
+    const card=document.querySelector(`[data-text*="${ct.name.toLowerCase()}"]`);
+    if(card) card.dataset.countryName=ct.name;
+  },100);
+});
+
+// Help Dialog
+document.getElementById('helpBtn').addEventListener('click',()=>{
+  document.getElementById('shortcutsDialog').classList.add('active');
+});
+document.getElementById('shortcutsDialog').addEventListener('click',e=>{
+  if(e.target===document.getElementById('shortcutsDialog'))
+    e.target.classList.remove('active');
+});
+
+// Export Function
+window.exportComparison=function(){
+  if(selectedForCompare.length===0){ alert('Select countries to export!'); return; }
+  let csv='Country,Flag,Capital,Region,Population,Languages\n';
+  selectedForCompare.forEach(ct=>{
+    csv+=`"${ct.name}",${ct.flag},"${ct.capital}","${ct.region}","${ct.pop}","${ct.langs}"\n`;
+  });
+  const blob=new Blob([csv],{type:'text/csv'});
+  const url=window.URL.createObjectURL(blob);
+  const a=document.createElement('a');
+  a.href=url;
+  a.download='ethos-mapper-comparison.csv';
+  a.click();
+  window.URL.revokeObjectURL(url);
+};
+
+// Add export button to compare page
+setTimeout(()=>{
+  const comparePage=document.getElementById('tab-compare');
+  if(comparePage){
+    const title=comparePage.querySelector('.page-title');
+    if(title && !document.getElementById('exportBtn')){
+      const btn=document.createElement('button');
+      btn.id='exportBtn';
+      btn.className='export-btn';
+      btn.textContent='📥 Export CSV';
+      btn.onclick=exportComparison;
+      btn.style.marginLeft='12px';
+      title.parentElement.insertBefore(btn, title.nextSibling);
+    }
+  }
+},1000);
 </script>
 </body>
 </html>
