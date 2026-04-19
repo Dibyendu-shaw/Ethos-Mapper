@@ -19,11 +19,9 @@
             border: 1px solid rgba(255, 255, 255, 0.1);
         }
 
-        /* Custom Neon Scrollbar */
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-thumb { background: #22d3ee; border-radius: 10px; }
 
-        /* The "Tangy" Animation */
         @keyframes pulse-cyan {
             0% { box-shadow: 0 0 0 0 rgba(34, 211, 238, 0.4); }
             70% { box-shadow: 0 0 0 15px rgba(34, 211, 238, 0); }
@@ -44,7 +42,6 @@
         
         <!-- SIDEBAR -->
         <aside class="absolute top-4 left-4 bottom-4 w-80 md:w-96 glass z-[1001] rounded-3xl flex flex-col shadow-2xl overflow-hidden border border-white/10">
-            <!-- Header -->
             <div class="p-6 pb-2">
                 <div class="flex items-center gap-3 mb-6">
                     <div class="w-10 h-10 bg-cyan-500 rounded-full flex items-center justify-center shadow-[0_0_20px_rgba(34,211,238,0.6)]">
@@ -53,7 +50,6 @@
                     <h1 class="text-2xl font-bold tracking-tighter text-white">ETHOS<span class="text-cyan-400">MAPPER</span></h1>
                 </div>
 
-                <!-- Search Bar -->
                 <div class="relative group">
                     <input type="text" id="search" placeholder="Search countries..." 
                         class="w-full bg-slate-900/50 border border-slate-700 rounded-xl py-3 px-11 text-sm focus:outline-none focus:border-cyan-400 focus:ring-1 focus:ring-cyan-400 transition-all">
@@ -61,18 +57,15 @@
                 </div>
             </div>
 
-            <!-- Country List -->
             <div id="country-list" class="flex-1 overflow-y-auto px-6 py-4 space-y-3">
-                <!-- Loading State -->
-                <div class="text-center py-10 text-slate-500 animate-pulse text-sm">Initializing global data...</div>
+                <div id="status-message" class="text-center py-10 text-slate-500 animate-pulse text-sm">Initializing global data...</div>
             </div>
 
-            <!-- Footer Stats -->
             <div class="p-6 bg-cyan-500/5 border-t border-white/5">
                 <div class="flex justify-between items-center text-[10px] uppercase tracking-widest text-slate-400">
-                    <span>Active Nodes: <span id="node-count" class="text-cyan-400">0</span></span>
-                    <span class="flex items-center gap-1">
-                        <span class="w-1.5 h-1.5 rounded-full bg-cyan-500 animate-ping"></span> Live System
+                    <span>Nodes: <span id="node-count" class="text-cyan-400">0</span></span>
+                    <span id="data-source" class="flex items-center gap-1 text-emerald-400">
+                        <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span> Online
                     </span>
                 </div>
             </div>
@@ -83,25 +76,16 @@
             <div id="map"></div>
         </main>
 
-        <!-- Right Side: Mini Stats Card (Addictive UI) -->
+        <!-- STATS CARD -->
         <div id="stats-card" class="absolute top-4 right-4 glass p-6 rounded-3xl z-[1001] w-64 hidden border border-cyan-500/30">
             <h2 id="stat-name" class="text-xl font-bold text-white mb-1">Country</h2>
             <p id="stat-capital" class="text-cyan-400 text-xs uppercase mb-4 tracking-widest">Capital</p>
-            
             <div class="space-y-3">
-                <div class="flex justify-between items-center">
-                    <span class="text-slate-400 text-xs">Population</span>
-                    <span id="stat-pop" class="text-white font-mono text-sm font-bold">0</span>
-                </div>
-                <div class="flex justify-between items-center">
-                    <span class="text-slate-400 text-xs">Region</span>
-                    <span id="stat-region" class="text-white text-sm">Earth</span>
-                </div>
+                <div class="flex justify-between items-center"><span class="text-slate-400 text-xs">Population</span><span id="stat-pop" class="text-white font-mono text-sm font-bold">0</span></div>
+                <div class="flex justify-between items-center"><span class="text-slate-400 text-xs">Region</span><span id="stat-region" class="text-white text-sm">Earth</span></div>
             </div>
-            
-            <button onclick="closeStats()" class="mt-6 w-full py-2 bg-slate-800 hover:bg-slate-700 rounded-xl text-[10px] uppercase tracking-widest transition">Close Detail</button>
+            <button onclick="closeStats()" class="mt-6 w-full py-2 bg-slate-800 hover:bg-slate-700 rounded-xl text-[10px] uppercase tracking-widest transition">Close</button>
         </div>
-
     </div>
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
@@ -111,85 +95,82 @@
         const countryListEl = document.getElementById('country-list');
         const searchInput = document.getElementById('search');
 
-        // 1. Initialize Modern Map
         const map = L.map('map', { zoomControl: false }).setView([20, 0], 2);
-        
-        // Premium Dark Map Tiles
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-            attribution: '&copy; CartoDB'
-        }).addTo(map);
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', { attribution: '&copy; CartoDB' }).addTo(map);
         map.attributionControl.setPrefix(false);
 
-        // 2. Fetch Real Data from API
+        // Backup Data in case API fails
+        const fallbackData = [
+            { name: { common: "India" }, flag: "🇮🇳", population: 1408000000, region: "Asia", latlng: [20, 77], capital: ["New Delhi"] },
+            { name: { common: "United States" }, flag: "🇺🇸", population: 331000000, region: "Americas", latlng: [38, -97], capital: ["Washington D.C."] },
+            { name: { common: "United Kingdom" }, flag: "🇬🇧", population: 67000000, region: "Europe", latlng: [55, -3], capital: ["London"] },
+            { name: { common: "Australia" }, flag: "🇦🇺", population: 25000000, region: "Oceania", latlng: [-25, 133], capital: ["Canberra"] },
+            { name: { common: "Brazil" }, flag: "🇧🇷", population: 214000000, region: "Americas", latlng: [-10, -51], capital: ["Brasília"] },
+            { name: { common: "Germany" }, flag: "🇩🇪", population: 83000000, region: "Europe", latlng: [51, 9], capital: ["Berlin"] },
+            { name: { common: "Japan" }, flag: "🇯🇵", population: 125000000, region: "Asia", latlng: [36, 138], capital: ["Tokyo"] }
+        ];
+
         async function fetchCountries() {
             try {
-                const res = await fetch('https://restcountries.com/v3.1/all');
+                // Try API
+                const res = await fetch('https://restcountries.com/v3.1/all', { signal: AbortSignal.timeout(5000) });
+                if (!res.ok) throw new Error();
                 const data = await res.json();
-                
-                // Sort alphabetically
                 allCountries = data.sort((a, b) => a.name.common.localeCompare(b.name.common));
-                document.getElementById('node-count').innerText = allCountries.length;
                 renderList(allCountries);
             } catch (err) {
-                countryListEl.innerHTML = `<div class="text-red-400">Failed to load world data.</div>`;
+                // If API fails, use Backup Data
+                console.log("Using Fallback Data");
+                allCountries = fallbackData;
+                document.getElementById('data-source').innerHTML = '<span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span> Offline Mode';
+                document.getElementById('data-source').classList.replace('text-emerald-400', 'text-amber-400');
+                renderList(allCountries);
             }
+            document.getElementById('node-count').innerText = allCountries.length;
         }
 
-        // 3. Render the Sidebar List
         function renderList(list) {
             countryListEl.innerHTML = '';
             list.forEach(country => {
                 const card = document.createElement('div');
                 card.className = "country-card p-4 rounded-2xl border border-white/5 cursor-pointer transition-all flex items-center gap-4 bg-slate-800/20";
-                card.innerHTML = `
-                    <span class="text-2xl">${country.flag}</span>
-                    <div>
-                        <h3 class="text-sm font-bold text-white">${country.name.common}</h3>
-                        <p class="text-[10px] text-slate-500 uppercase tracking-tighter">${country.region}</p>
-                    </div>
-                `;
+                card.innerHTML = `<span class="text-2xl">${country.flag}</span><div><h3 class="text-sm font-bold text-white">${country.name.common}</h3><p class="text-[10px] text-slate-500 uppercase tracking-tighter">${country.region}</p></div>`;
                 card.onclick = () => focusCountry(country);
                 countryListEl.appendChild(card);
             });
         }
 
-        // 4. Search Logic
         searchInput.oninput = (e) => {
             const val = e.target.value.toLowerCase();
-            const filtered = allCountries.filter(c => 
-                c.name.common.toLowerCase().includes(val) || 
-                c.region.toLowerCase().includes(val)
-            );
+            const filtered = allCountries.filter(c => c.name.common.toLowerCase().includes(val) || c.region.toLowerCase().includes(val));
             renderList(filtered);
         };
 
-        // 5. Interaction: Fly to Country
+        let currentMarker = null;
         function focusCountry(c) {
+            if (currentMarker) map.removeLayer(currentMarker);
             const latlng = c.latlng;
-            map.flyTo(latlng, 5, { duration: 2.5, easeLinearity: 0.25 });
+            map.flyTo(latlng, 5, { duration: 2 });
             
-            // Show Stats Card
             document.getElementById('stats-card').classList.remove('hidden');
             document.getElementById('stat-name').innerText = c.name.common;
             document.getElementById('stat-capital').innerText = c.capital ? c.capital[0] : 'N/A';
             document.getElementById('stat-pop').innerText = c.population.toLocaleString();
             document.getElementById('stat-region').innerText = c.region;
 
-            // Add a temporary glowing marker
-            const marker = L.circleMarker(latlng, {
-                radius: 12,
+            currentMarker = L.circleMarker(latlng, {
+                radius: 15,
                 className: 'pulse-marker',
                 fillColor: '#22d3ee',
                 color: '#fff',
                 weight: 2,
                 fillOpacity: 0.9
             }).addTo(map);
-
-            setTimeout(() => map.removeLayer(marker), 5000);
         }
 
         function closeStats() {
             document.getElementById('stats-card').classList.add('hidden');
+            if (currentMarker) map.removeLayer(currentMarker);
         }
 
         fetchCountries();
