@@ -1,59 +1,146 @@
-// A modern, responsive Map Shell
-import React, { useState } from 'react';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
-import 'leaflet/dist/leaflet.css';
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ethos Mapper | Social Impact Visualization</title>
+    
+    <!-- Tailwind CSS for Modern Styling -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Leaflet CSS for the Map -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
 
-const EthosMapper = () => {
-  const [activeData, setActiveData] = useState(null);
-
-  return (
-    <div className="flex h-screen w-full bg-slate-900 text-white font-sans overflow-hidden">
-      {/* Sidebar for Data Details */}
-      <aside className="w-1/4 h-full p-6 bg-slate-800/50 backdrop-blur-md border-r border-slate-700 z-10 overflow-y-auto">
-        <h1 className="text-2xl font-bold bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent mb-2">
-          Ethos Mapper
-        </h1>
-        <p className="text-slate-400 text-sm mb-8">Visualizing community impact and social value.</p>
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+        #map { height: 100vh; width: 100%; z-index: 1; }
         
-        <div className="space-y-4">
-          <div className="p-4 bg-slate-700/30 rounded-lg hover:bg-slate-700/50 transition cursor-pointer">
-            <h3 className="font-semibold text-emerald-400">Project Alpha</h3>
-            <p className="text-xs text-slate-300">Ecological restoration in the Jharkhand region.</p>
-          </div>
-          {/* Add more interactive list items here */}
-        </div>
-      </aside>
+        /* Custom scrollbar for the sidebar */
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: #1e293b; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 10px; }
 
-      {/* Main Map Area */}
-      <main className="flex-1 relative">
-        <MapContainer center={[23.83, 86.66]} zoom={13} className="h-full w-full">
-          <TileLayer
-            url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
-            attribution='&copy; OpenStreetMap &copy; CARTO'
-          />
-          {/* Example Marker */}
-          <Marker position={[23.83, 86.66]}>
-            <Popup className="custom-popup">
-              <div className="text-slate-900">
-                <h4 className="font-bold">Mihijam Ethos Hub</h4>
-                <p>Social Impact: High</p>
-              </div>
-            </Popup>
-          </Marker>
-        </MapContainer>
+        /* Modern Popup Styling */
+        .leaflet-popup-content-wrapper {
+            background: #1e293b;
+            color: white;
+            border-radius: 12px;
+            padding: 5px;
+        }
+        .leaflet-popup-tip { background: #1e293b; }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 overflow-hidden">
 
-        {/* Floating Controls */}
-        <div className="absolute top-4 right-4 flex flex-col gap-2 z-[1000]">
-          <button className="bg-white/10 backdrop-blur-md p-2 rounded-full border border-white/20 hover:bg-white/20">
-            🔍
-          </button>
-          <button className="bg-white/10 backdrop-blur-md p-2 rounded-full border border-white/20 hover:bg-white/20">
-            📍
-          </button>
-        </div>
-      </main>
+    <div class="flex flex-col md:flex-row h-screen w-full">
+        
+        <!-- SIDEBAR -->
+        <aside class="w-full md:w-80 lg:w-96 bg-slate-900/90 backdrop-blur-xl border-r border-slate-800 flex flex-col z-10 shadow-2xl">
+            <div class="p-6">
+                <div class="flex items-center gap-2 mb-2">
+                    <div class="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center shadow-[0_0_15px_rgba(16,185,129,0.5)]">
+                        <span class="font-bold text-white text-sm">EM</span>
+                    </div>
+                    <h1 class="text-2xl font-bold tracking-tight bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">
+                        Ethos Mapper
+                    </h1>
+                </div>
+                <p class="text-slate-400 text-sm leading-relaxed mb-6">
+                    Visualizing social impact, ecological restoration, and community values across regions.
+                </p>
+
+                <div class="space-y-4">
+                    <h2 class="text-xs font-semibold uppercase tracking-widest text-slate-500">Active Projects</h2>
+                    
+                    <!-- Card 1 -->
+                    <div class="group p-4 bg-slate-800/50 border border-slate-700 rounded-xl hover:border-emerald-500/50 transition-all cursor-pointer">
+                        <h3 class="font-semibold text-emerald-400 group-hover:text-emerald-300 transition-colors">Jharkhand Ecosystem</h3>
+                        <p class="text-xs text-slate-400 mt-1">Ecological restoration and tribal community mapping in Jamtara.</p>
+                        <div class="flex gap-2 mt-3">
+                            <span class="px-2 py-0.5 bg-emerald-500/10 text-emerald-500 text-[10px] rounded-full border border-emerald-500/20">Ecological</span>
+                            <span class="px-2 py-0.5 bg-blue-500/10 text-blue-500 text-[10px] rounded-full border border-blue-500/20">Active</span>
+                        </div>
+                    </div>
+
+                    <!-- Card 2 -->
+                    <div class="group p-4 bg-slate-800/50 border border-slate-700 rounded-xl hover:border-cyan-500/50 transition-all cursor-pointer">
+                        <h3 class="font-semibold text-cyan-400 group-hover:text-cyan-300 transition-colors">XISS Social Value</h3>
+                        <p class="text-xs text-slate-400 mt-1">Visualizing social entrepreneurship hubs near Ranchi.</p>
+                        <div class="flex gap-2 mt-3">
+                            <span class="px-2 py-0.5 bg-cyan-500/10 text-cyan-500 text-[10px] rounded-full border border-cyan-500/20">Community</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Footer Section -->
+            <div class="mt-auto p-6 border-t border-slate-800 bg-slate-900/50">
+                <p class="text-[10px] text-slate-500">Developed by Dibyendu Shaw</p>
+                <div class="flex gap-4 mt-2">
+                    <a href="#" class="text-slate-400 hover:text-white transition text-xs italic underline">Methodology</a>
+                    <a href="#" class="text-slate-400 hover:text-white transition text-xs italic underline">Data Source</a>
+                </div>
+            </div>
+        </aside>
+
+        <!-- MAP CONTAINER -->
+        <main class="flex-1 relative">
+            <div id="map"></div>
+            
+            <!-- Floating Map Controls (UI Only) -->
+            <div class="absolute top-4 right-4 z-[1000] flex flex-col gap-2">
+                <button title="Search Location" class="w-10 h-10 bg-slate-900 border border-slate-700 rounded-full flex items-center justify-center text-slate-300 hover:bg-slate-800 transition shadow-lg">
+                    🔍
+                </button>
+                <button title="Filter Layers" class="w-10 h-10 bg-slate-900 border border-slate-700 rounded-full flex items-center justify-center text-slate-300 hover:bg-slate-800 transition shadow-lg">
+                    📍
+                </button>
+            </div>
+        </main>
+
     </div>
-  );
-};
 
-export default EthosMapper;
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <script>
+        // Initialize Map (Centered on Jharkhand region)
+        const map = L.map('map', {
+            zoomControl: false // Hide default zoom for a cleaner UI
+        }).setView([23.8327, 86.6690], 12);
+
+        // Add Modern Dark Tiles (CartoDB Dark Matter)
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; OpenStreetMap contributors &copy; CARTO'
+        }).addTo(map);
+
+        // Custom Marker Data
+        const locations = [
+            {
+                coords: [23.8327, 86.6690],
+                title: "Mihijam Ethos Hub",
+                impact: "High Impact",
+                desc: "Focusing on sustainable livelihoods and water conservation."
+            }
+        ];
+
+        // Add Markers to Map
+        locations.forEach(loc => {
+            const marker = L.marker(loc.coords).addTo(map);
+            marker.bindPopup(`
+                <div style="min-width: 150px">
+                    <h4 style="margin: 0; font-weight: bold; color: #34d399;">${loc.title}</h4>
+                    <p style="margin: 4px 0; font-size: 11px; color: #94a3b8;">${loc.impact}</p>
+                    <p style="margin: 8px 0 0; font-size: 12px; line-height: 1.4;">${loc.desc}</p>
+                </div>
+            `);
+        });
+
+        // Move Zoom control to bottom right
+        L.control.zoom({ position: 'bottomright' }).addTo(map);
+    </script>
+</body>
+</html>
